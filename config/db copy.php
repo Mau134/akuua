@@ -1,8 +1,8 @@
 <?php
-$host = "mysql.hostinger.com";
-$user = "u852669780_ecommerce_db";
-$pass = "1973@Box2";
-$db   = "u852669780_ecommerce_db";
+$host = "localhost";
+$user = "root";
+$pass = "";
+$db   = "ecommerce_db";
 
 $conn = new mysqli($host, $user, $pass, $db);
 
