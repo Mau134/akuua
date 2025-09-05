@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once "../config/db.php";
-include "../includes/header.php";
+include "../includes/header1.php";
 
 // Initialize cart
 if (!isset($_SESSION['cart'])) {
@@ -16,7 +16,9 @@ if (isset($_GET['add'])) {
     } else {
         $_SESSION['cart'][$id]++; // increase qty
     }
-    header("Location: cart.php");
+
+    // Redirect back to shop instead of staying in cart
+    header("Location: ../index.php?added=1");
     exit;
 }
 
@@ -47,8 +49,8 @@ if (!empty($_SESSION['cart'])) {
   <h2 class="mb-4">Your Cart</h2>
   
   <?php if ($items): ?>
-    <table class="table table-bordered">
-      <thead>
+    <table class="table table-bordered align-middle">
+      <thead class="table-light">
         <tr>
           <th>Product</th>
           <th>Price</th>
@@ -76,10 +78,14 @@ if (!empty($_SESSION['cart'])) {
       </tbody>
     </table>
 
-    <a href="checkout.php" class="btn btn-success btn-lg">Proceed to Checkout</a>
+    <div class="d-flex justify-content-between">
+      <a href="../index.php" class="btn btn-secondary">Continue Shopping</a>
+      <a href="checkout.php" class="btn btn-success btn-lg">Proceed to Checkout</a>
+    </div>
 
   <?php else: ?>
-    <p class="text-muted">Your cart is empty.</p>
+    <p class="text-muted">Your cart is empty. <a href="../index.php">Go shopping</a></p>
   <?php endif; ?>
 </div>
+
 <?php include "../includes/footer.php"; ?>

@@ -1,6 +1,4 @@
-/* ================================
-   Global Styles
-================================ */
+
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: #f8f9fa;
@@ -8,8 +6,8 @@ body {
 }
 
 /* Navbar */
-.navbar {
-  background: linear-gradient(90deg, #0069d9, #0056b3);
+nav.navbar {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 .navbar-brand {
   font-weight: bold;

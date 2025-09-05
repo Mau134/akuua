@@ -1,6 +1,6 @@
 <?php
 require_once "../config/db.php";
-include "../includes/header.php";
+include "../includes/header1.php";
 
 $status = null;
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
