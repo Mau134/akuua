@@ -19,8 +19,8 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
-        <li class="nav-item"><a class="nav-link" href="public/cart.php">Cart</a></li>
-        <li class="nav-item"><a class="nav-link" href="public/order_status.php">Track Order</a></li>
+        <li class="nav-item"><a class="nav-link" href="../public/cart.php">Cart</a></li>
+        <li class="nav-item"><a class="nav-link" href="../public/order_status.php">Track Order</a></li>
       </ul>
     </div>
   </div>
