@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- Bootstrap 5 -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="/assets/css/style.css" rel="stylesheet">
+  <link href="assets/css/style.css" rel="stylesheet">
 </head>
 <body class="d-flex flex-column min-vh-100">
 
@@ -19,8 +19,8 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
-        <li class="nav-item"><a class="nav-link" href="public/cart.php">Cart</a></li>
-        <li class="nav-item"><a class="nav-link" href="public/order_status.php">Track Order</a></li>
+        <li class="nav-item"><a class="nav-link" href="../public/cart.php">Cart</a></li>
+        <li class="nav-item"><a class="nav-link" href="../public/order_status.php">Track Order</a></li>
       </ul>
     </div>
   </div>
