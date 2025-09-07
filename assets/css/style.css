@@ -21,6 +21,7 @@ nav.navbar {
 }
 .nav-link:hover {
   color: #ffc107 !important; /* gold hover effect */
+  text-decoration: none;
 }
 
 /* Card Styles */
