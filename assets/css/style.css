@@ -48,18 +48,39 @@ nav.navbar {
   border-color: #004a9f;
 }
 
-/* Tables */
+/* Cart Page Improvements */
+h2 {
+  font-weight: 600;
+}
+
 .table {
   border-radius: 10px;
   overflow: hidden;
-  background: #fff;
 }
-.table thead {
-  background-color: #0069d9;
-  color: #fff;
+
+.table thead th {
+  white-space: nowrap;
 }
-.table tbody tr:hover {
-  background-color: #f1f7ff;
+
+.table td, .table th {
+  vertical-align: middle;
+}
+
+.btn {
+  border-radius: 8px;
+  padding: 8px 16px;
+}
+
+/* Make buttons full width on small screens */
+@media (max-width: 768px) {
+  .btn-lg {
+    font-size: 1rem;
+    padding: 10px;
+  }
+  
+  .table th, .table td {
+    font-size: 0.9rem;
+  }
 }
 
 /* Footer */
