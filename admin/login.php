@@ -16,15 +16,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($result && $result->num_rows > 0) {
         $user = $result->fetch_assoc();
-
-        // Verify password
-        if (password_verify($pass, $user['password_hash']) && $user['role'] === 'admin') {
-            // ✅ Set session values correctly
-            $_SESSION['role'] = 'admin';
-            $_SESSION['admin_id'] = $user['id'];
-            $_SESSION['admin_email'] = $user['email'];
-
-            header("Location: dashboard.php");
+//password verify and role check
+if (password_verify($pass, $user['password']) && $user['role'] === 'admin') {
+    $_SESSION['role'] = 'admin';
+    $_SESSION['admin_id'] = $user['id'];
+    $_SESSION['admin_email'] = $user['email'];
+    header("Location: dashboard.php");
             exit;
         } else {
             $error = "Invalid credentials or not an admin!";
