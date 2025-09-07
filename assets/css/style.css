@@ -20,8 +20,7 @@ nav.navbar {
   transition: 0.3s;
 }
 .nav-link:hover {
-  color: #fff !important;
-  text-decoration: underline;
+  color: #ffc107 !important; /* gold hover effect */
 }
 
 /* Card Styles */
