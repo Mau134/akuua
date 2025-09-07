@@ -46,46 +46,56 @@ if (!empty($_SESSION['cart'])) {
 ?>
 
 <div class="container py-5">
-  <h2 class="mb-4">Your Cart</h2>
+  <h2 class="mb-4 text-center">Your Cart</h2>
   
   <?php if ($items): ?>
-    <table class="table table-bordered align-middle">
-      <thead class="table-light">
-        <tr>
-          <th>Product</th>
-          <th>Price</th>
-          <th>Qty</th>
-          <th>Subtotal</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        <?php foreach ($items as $item): ?>
+    <div class="table-responsive">
+      <table class="table table-bordered align-middle text-center">
+        <thead class="table-dark">
           <tr>
-            <td><?= htmlspecialchars($item['name']) ?></td>
-            <td>MWK <?= number_format($item['price'],2) ?></td>
-            <td><?= $item['qty'] ?></td>
-            <td>MWK <?= number_format($item['subtotal'],2) ?></td>
-            <td>
-              <a href="cart.php?remove=<?= $item['id'] ?>" class="btn btn-danger btn-sm">Remove</a>
+            <th>Product</th>
+            <th>Price</th>
+            <th>Qty</th>
+            <th>Subtotal</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php foreach ($items as $item): ?>
+            <tr>
+              <td class="fw-semibold"><?= htmlspecialchars($item['name']) ?></td>
+              <td>MWK <?= number_format($item['price'],2) ?></td>
+              <td><?= $item['qty'] ?></td>
+              <td class="fw-semibold">MWK <?= number_format($item['subtotal'],2) ?></td>
+              <td>
+                <a href="cart.php?remove=<?= $item['id'] ?>" class="btn btn-sm btn-outline-danger">
+                  ✕ Remove
+                </a>
+              </td>
+            </tr>
+          <?php endforeach; ?>
+          <tr>
+            <td colspan="3" class="text-end fw-bold">Total</td>
+            <td colspan="2" class="fw-bold text-success fs-5">
+              MWK <?= number_format($total,2) ?>
             </td>
           </tr>
-        <?php endforeach; ?>
-        <tr>
-          <td colspan="3" class="text-end fw-bold">Total</td>
-          <td colspan="2" class="fw-bold">MWK <?= number_format($total,2) ?></td>
-        </tr>
-      </tbody>
-    </table>
+        </tbody>
+      </table>
+    </div>
 
-    <div class="d-flex justify-content-between">
-      <a href="../index.php" class="btn btn-secondary">Continue Shopping</a>
-      <a href="checkout.php" class="btn btn-success btn-lg">Proceed to Checkout</a>
+    <!-- Action buttons -->
+    <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mt-4">
+      <a href="../index.php" class="btn btn-outline-secondary btn-lg w-100 w-md-auto">← Continue Shopping</a>
+      <a href="checkout.php" class="btn btn-success btn-lg w-100 w-md-auto">Proceed to Checkout →</a>
     </div>
 
   <?php else: ?>
-    <p class="text-muted">Your cart is empty. <a href="../index.php">Go shopping</a></p>
+    <div class="alert alert-info text-center">
+      Your cart is empty. <a href="../index.php" class="alert-link">Go shopping</a>
+    </div>
   <?php endif; ?>
 </div>
+
 
 <?php include "../includes/footer.php"; ?>
