@@ -22,11 +22,12 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
-        <li class="nav-item"><a class="nav-link" href="/akuua/admin/orders.php">Orders</a></li>
-        <li class="nav-item"><a class="nav-link" href="/akuua/admin/products.php">Products</a></li>
+        <li class="nav-item"><a class="nav-link" href="/admin/orders.php">Orders</a></li>
+        <li class="nav-item"><a class="nav-link" href="/admin/products.php">Products</a></li>
       </ul>
     </div>
   </div>
 </nav>
 
+<main class="flex-grow-1">
 <div class="container my-5">
