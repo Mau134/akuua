@@ -60,7 +60,6 @@ if (isset($_POST['place_order'])) {
         <img src="../assets/img/tnm_logo.png" alt="Mpamba" class="payment-logo">
         <img src="../assets/img/airtel_logo.png" alt="Airtel Money" class="payment-logo">
         <img src="../assets/img/standardbank_logo.png" alt="Bank Transfer" class="payment-logo">
-        <img src="../assets/img/visa_logo.png" alt="Visa" class="payment-logo">
         <img src="../assets/img/nationalbank_logo.png" alt="Mastercard" class="payment-logo">
       </div>
       <p class="mt-3 text-muted">Choose your preferred payment method at checkout</p>
