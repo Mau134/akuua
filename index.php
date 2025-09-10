@@ -13,7 +13,7 @@ while ($row = $cat_query->fetch_assoc()) {
 <!-- Hero Section with Slideshow -->
 <div id="heroCarousel" class="carousel slide mb-5" data-bs-ride="carousel">
   <div class="carousel-inner">
-    <div class="carousel-item active" style="background: url('assets/hero-bg1.jpg') center/cover no-repeat; height: 80vh;">
+    <div class="carousel-item active" style="background: url('assets/hhero2.jpg') center/cover no-repeat; height: 80vh;">
       <div class="container text-center text-white d-flex flex-column justify-content-center h-100">
         <h1 class="display-3 fw-bold">Welcome to Akuua Store</h1>
         <p class="lead mb-4">Shop fashion, electronics, accessories, and more at the best prices!</p>
