@@ -10,19 +10,44 @@ while ($row = $cat_query->fetch_assoc()) {
 }
 ?>
 
-<!-- Hero Section -->
-<section class="bg-dark text-white py-5 mb-5" style="background: url('assets/hero-bg.jpg') center/cover no-repeat;">
-  <div class="container text-center py-5">
-    <h1 class="display-4 fw-bold">Welcome to Akuua Store</h1>
-    <p class="lead mb-4">Discover the best deals on fashion, accessories, and more.</p>
-    <a href="#products" class="btn btn-primary btn-lg px-4">Shop Now</a>
+<!-- Hero Section with Slideshow -->
+<div id="heroCarousel" class="carousel slide mb-5" data-bs-ride="carousel">
+  <div class="carousel-inner">
+    <div class="carousel-item active" style="background: url('assets/hero-bg1.jpg') center/cover no-repeat; height: 80vh;">
+      <div class="container text-center text-white d-flex flex-column justify-content-center h-100">
+        <h1 class="display-3 fw-bold">Welcome to Akuua Store</h1>
+        <p class="lead mb-4">Shop fashion, electronics, accessories, and more at the best prices!</p>
+        <a href="#products" class="btn btn-primary btn-lg px-4">Shop Now</a>
+      </div>
+    </div>
+    <div class="carousel-item" style="background: url('assets/hero-bg2.jpg') center/cover no-repeat; height: 80vh;">
+      <div class="container text-center text-white d-flex flex-column justify-content-center h-100">
+        <h1 class="display-3 fw-bold">Trendy & Affordable</h1>
+        <p class="lead mb-4">Stay stylish with the latest collections.</p>
+        <a href="#products" class="btn btn-light btn-lg px-4">Explore</a>
+      </div>
+    </div>
+    <div class="carousel-item" style="background: url('assets/hero-bg3.jpg') center/cover no-repeat; height: 80vh;">
+      <div class="container text-center text-white d-flex flex-column justify-content-center h-100">
+        <h1 class="display-3 fw-bold">Shop Anytime, Anywhere</h1>
+        <p class="lead mb-4">Fast delivery and secure checkout.</p>
+        <a href="#about" class="btn btn-warning btn-lg px-4">Learn More</a>
+      </div>
+    </div>
   </div>
-</section>
+  <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+    <span class="carousel-control-prev-icon"></span>
+  </button>
+  <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+    <span class="carousel-control-next-icon"></span>
+  </button>
+</div>
 
 <!-- Products Section -->
-<div id="products" class="container">
+<div id="products" class="container py-5">
+  <h2 class="text-center mb-5">Our Products</h2>
   <?php foreach ($categories as $cat): ?>
-    <h2 class="text-center my-4"><?= htmlspecialchars($cat) ?></h2>
+    <h3 class="text-center my-4"><?= htmlspecialchars($cat) ?></h3>
     <div class="row g-4 mb-5">
       <?php
       $stmt = $conn->prepare("SELECT * FROM products WHERE category = ?");
@@ -50,7 +75,7 @@ while ($row = $cat_query->fetch_assoc()) {
               <div class="card-body d-flex flex-column">
                 <h5 class="card-title"><?= htmlspecialchars($row['name']) ?></h5>
                 <p class="card-text text-muted"><?= substr($row['description'], 0, 70) ?>...</p>
-                <p class="fw-bold mb-2 text-success">MWK <?= $row['price'] ?></p>
+                <p class="fw-bold mb-2 text-success">MWK <?= number_format($row['price'],2) ?></p>
                 <?php if ($row['stock'] <= 0): ?>
                   <span class="badge bg-danger">Out of Stock</span>
                 <?php else: ?>
@@ -66,5 +91,75 @@ while ($row = $cat_query->fetch_assoc()) {
     </div>
   <?php endforeach; ?>
 </div>
+
+<!-- About Us Section -->
+<section id="about" class="bg-light py-5">
+  <div class="container text-center">
+    <h2 class="fw-bold mb-4">About Us</h2>
+    <p class="lead mb-4">At Akuua Store, we bring you quality products at affordable prices. 
+      From fashion to electronics, we ensure customer satisfaction with every order.</p>
+    <div class="row mt-4">
+      <div class="col-md-4">
+        <h5>🌍 Our Mission</h5>
+        <p>To make online shopping accessible and reliable for everyone in Malawi and beyond.</p>
+      </div>
+      <div class="col-md-4">
+        <h5>🤝 Our Promise</h5>
+        <p>Fast delivery, secure payments, and excellent customer service.</p>
+      </div>
+      <div class="col-md-4">
+        <h5>📦 What We Offer</h5>
+        <p>Fashion, electronics, home essentials, and more delivered to your doorstep.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ Section -->
+<section id="faq" class="py-5">
+  <div class="container">
+    <h2 class="text-center fw-bold mb-4">Frequently Asked Questions</h2>
+    <div class="accordion" id="faqAccordion">
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+            How do I place an order?
+          </button>
+        </h2>
+        <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+          <div class="accordion-body">
+            Browse our products, add items to your cart, and proceed to checkout. It's that simple!
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+            Do you deliver nationwide?
+          </button>
+        </h2>
+        <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+          <div class="accordion-body">
+            Yes, we deliver across Malawi. Delivery times may vary depending on your location.
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+            What payment methods do you accept?
+          </button>
+        </h2>
+        <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+          <div class="accordion-body">
+            We accept Visa, MasterCard, mobile money, and cash on delivery (where available).
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <?php include "includes/footer.php"; ?>
