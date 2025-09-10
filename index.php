@@ -20,14 +20,14 @@ while ($row = $cat_query->fetch_assoc()) {
         <a href="#products" class="btn btn-primary btn-lg px-4">Shop Now</a>
       </div>
     </div>
-    <div class="carousel-item" style="background: url('assets/hero-bg2.jpg') center/cover no-repeat; height: 80vh;">
+    <div class="carousel-item" style="background: url('/assets/img/hero1.jpg') center/cover no-repeat; height: 80vh;">
       <div class="container text-center text-white d-flex flex-column justify-content-center h-100">
         <h1 class="display-3 fw-bold">Trendy & Affordable</h1>
         <p class="lead mb-4">Stay stylish with the latest collections.</p>
         <a href="#products" class="btn btn-light btn-lg px-4">Explore</a>
       </div>
     </div>
-    <div class="carousel-item" style="background: url('assets/hero-bg3.jpg') center/cover no-repeat; height: 80vh;">
+    <div class="carousel-item" style="background: url('/assets/img/hero2.jpg') center/cover no-repeat; height: 80vh;">
       <div class="container text-center text-white d-flex flex-column justify-content-center h-100">
         <h1 class="display-3 fw-bold">Shop Anytime, Anywhere</h1>
         <p class="lead mb-4">Fast delivery and secure checkout.</p>
