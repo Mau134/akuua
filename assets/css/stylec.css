@@ -1,8 +1,12 @@
 
 /* stylec.css */
 
+
 body {
   font-family: 'Segoe UI', Arial, sans-serif;
+  background: url('../assets/img/background1.jpg') repeat center center fixed;
+  background-size: cover;
+  color: #212529; /* keeps text readable */
 }
 
 /* Navbar overrides */
