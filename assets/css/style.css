@@ -1,7 +1,7 @@
 
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: url('../img/background1.jpg') repeat center center fixed;
+  background: url('./img/background1.jpg') repeat center center fixed;
   background-size: cover;
   background-color: #f8f9fa;
   color: #333;
