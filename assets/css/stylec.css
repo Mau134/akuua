@@ -4,10 +4,11 @@
 
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: url('/assets/img/background1.jpg#') center center fixed;
+  background: url('/img/background1.jpg') center center fixed;
   background-size: cover;
   background-repeat: no-repeat;
   background-attachment: fixed;
+  background-color: #f8f9fa; /* fallback color */
   color: #333;
 }
 
