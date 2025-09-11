@@ -44,7 +44,30 @@ if (!empty($_SESSION['cart'])) {
     }
 }
 ?>
+<style>
+  body {
+    position: relative;
+    background: url("assets/img/background1.jpg") center center fixed;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-color: #f8f9fa; /* fallback */
+    color: #333;
+    z-index: 0;
+  }
 
+  /* Overlay to dim the background */
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.7); /* white transparent overlay */
+    z-index: -1;
+  }
+</style>
 <div class="container py-5">
   <h2 class="mb-4 text-center">Your Cart</h2>
   
