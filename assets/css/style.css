@@ -5,7 +5,6 @@ body {
   background-size: cover;
   background-repeat: no-repeat;
   background-attachment: fixed;
-  background-color: #f8f9fa; /* fallback color */
   color: #333;
 }
 
