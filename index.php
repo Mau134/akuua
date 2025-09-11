@@ -2,6 +2,7 @@
 require_once "config/db.php";
 include "includes/header.php";
 
+
 // Fetch distinct categories from the database
 $categories = [];
 $cat_query = $conn->query("SELECT DISTINCT category FROM products");
@@ -9,6 +10,15 @@ while ($row = $cat_query->fetch_assoc()) {
     $categories[] = $row['category'];
 }
 ?>
+<style>
+  body {
+    background: url("assets/img/background1.jpg") center center fixed;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-color: #f8f9fa; /* fallback */
+  }
+</style>
 
 <!-- Hero Section with Slideshow -->
 <div id="heroCarousel" class="carousel slide mb-5" data-bs-ride="carousel">
