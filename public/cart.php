@@ -47,7 +47,7 @@ if (!empty($_SESSION['cart'])) {
 <style>
   body {
     position: relative;
-    background: url("assets/img/background1.jpg") center center fixed;
+    background: url("../assets/img/background1.jpg") center center fixed;
     background-size: cover;
     background-repeat: no-repeat;
     background-attachment: fixed;
