@@ -82,7 +82,6 @@ if (isset($_POST['place_order'])) {
       <div class="d-flex justify-content-center align-items-center gap-4 flex-wrap">
         <img src="../assets/img/tnm_logo.png" alt="Mpamba" class="payment-logo">
         <img src="../assets/img/airtel_logo.png" alt="Airtel Money" class="payment-logo">
-        <img src="../assets/img/standardbank_logo.png" alt="Bank Transfer" class="payment-logo">
         <img src="../assets/img/nationalbank_logo.png" alt="Mastercard" class="payment-logo">
       </div>
       <p class="mt-3 text-muted">Choose your preferred payment method at checkout</p>
@@ -128,7 +127,6 @@ if (isset($_POST['place_order'])) {
         <option value="Mpamba">Mpamba</option>
         <option value="Airtel Money">Airtel Money</option>
         <option value="Bank Transfer">Bank Transfer</option>
-        <option value="Cash on Delivery">Cash on Delivery</option>
       </select>
     </div>
 
@@ -151,16 +149,13 @@ function showAccount(method) {
     let box = document.getElementById("account_details");
     if (method === "Mpamba") {
         box.style.display = "block";
-        box.innerHTML = "<b>Mpamba Number:</b> 0888 123 456 (Akuua Store)";
+        box.innerHTML = "<b>Mpamba Number:</b> 0897 391 415 (Akuua Store)";
     } else if (method === "Airtel Money") {
         box.style.display = "block";
-        box.innerHTML = "<b>Airtel Money:</b> 0999 654 321 (Akuua Store)";
+        box.innerHTML = "<b>Airtel Money:</b> 0990 012 380 (Akuua Store)";
     } else if (method === "Bank Transfer") {
         box.style.display = "block";
-        box.innerHTML = "<b>Bank Account:</b> Standard Bank - 123456789 (Akuua Store)";
-    } else if (method === "Cash on Delivery") {
-        box.style.display = "block";
-        box.innerHTML = "You will pay in cash upon delivery.";
+        box.innerHTML = "<b>Bank Account:</b> National Bank - 1007448984 (Akuua Store)";
     } else {
         box.style.display = "none";
     }
