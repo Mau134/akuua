@@ -16,7 +16,7 @@ body {
 /* Navbar overrides */
 .navbar-brand {
   font-weight: bold;
-  font-size: 1.25rem;
+  font-size: 1.8rem;
   color: #f8f9fa !important; /* force white logo text */
 }
 
