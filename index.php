@@ -57,30 +57,6 @@ while ($row = $cat_query->fetch_assoc()) {
   }
 </style>
 
-<!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <div class="container">
-    <!-- Logo -->
-    <a class="navbar-brand d-flex align-items-center" href="index.php">
-      <i class="fas fa-shopping-cart me-2"></i> Akuua
-    </a>
-
-    <!-- Mobile menu toggle -->
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-
-    <!-- Links -->
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav ms-auto">
-        <li class="nav-item"><a class="nav-link" href="public/cart.php"><i class="fas fa-shopping-basket me-1"></i> Cart</a></li>
-        <li class="nav-item"><a class="nav-link" href="public/order_status.php"><i class="fas fa-truck me-1"></i> Track Order</a></li>
-        <li class="nav-item"><a class="nav-link" href="#about"><i class="fas fa-info-circle me-1"></i> About Us</a></li>
-        <li class="nav-item"><a class="nav-link" href="#faq"><i class="fas fa-question-circle me-1"></i> FAQ</a></li>
-      </ul>
-    </div>
-  </div>
-</nav>
 
 <!-- Login Bar -->
 <?php if (!isset($_SESSION['user_id'])): ?>
