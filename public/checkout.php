@@ -51,7 +51,7 @@ if (isset($_POST['place_order'])) {
 <style>
   body {
     position: relative;
-    background: url("../assets/img/background1.jpg") center center fixed;
+    background: url("../assets/img/shop2.jpg") center center fixed;
     background-size: cover;
     background-repeat: no-repeat;
     background-attachment: fixed;
