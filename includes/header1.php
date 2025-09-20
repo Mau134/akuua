@@ -1,11 +1,10 @@
 <?php
 session_start();
 require_once "config/db.php";
+
+// Show errors while debugging (remove on production)
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
-
-// Initialize cart count
-$cart_count = isset($_SESSION['cart']) ? array_sum($_SESSION['cart']) : 0;
 
 // Check login status
 $is_logged_in = isset($_SESSION['user_id']);
