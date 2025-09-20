@@ -3,11 +3,6 @@ session_start();
 require_once "../config/db.php";
 include "../includes/header1.php";
 
-// Check if user is logged in
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php?redirect=cart");
-    exit;
-}
 
 // Initialize cart
 if (!isset($_SESSION['cart'])) {
