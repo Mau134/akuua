@@ -73,8 +73,7 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : null;
         </li>
 
         <!-- Login / Logout -->
-        <?php /*
-        if (!$is_logged_in): ?>
+        <?php if (!$is_logged_in): ?>
           <li class="nav-item">
             <a class="nav-link" href="../public/login.php">
               <i class="fas fa-user me-1"></i> Log In
@@ -89,9 +88,7 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : null;
               <li><a class="dropdown-item" href="../public/logout.php">Logout</a></li>
             </ul>
           </li>
-        <?php endif;
-        */
-        ?>
+        <?php endif; ?>
 
       </ul>
     </div>
