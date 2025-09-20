@@ -3,10 +3,7 @@ session_start();
 require_once "config/db.php";
 include "includes/header.php";
 
-// Redirect to login if not logged in and trying to access cart
-$_SESSION['redirect_to_cart'] = true;
-header("Location: login.php");
-exit;
+
 
 
 // Fetch distinct categories
