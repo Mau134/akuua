@@ -6,6 +6,9 @@ require_once "config/db.php";
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// Initialize cart count
+$cart_count = isset($_SESSION['cart']) ? array_sum($_SESSION['cart']) : 0;
+
 // Check login status
 $is_logged_in = isset($_SESSION['user_id']);
 $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : null;
@@ -54,13 +57,17 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : null;
           </a>
         </li>
 
-        <!-- Cart -->
+        <!-- Cart with badge -->
         <li class="nav-item">
-          <a class="nav-link" href="/public/cart.php">
+          <a class="nav-link position-relative" href="<?php echo $is_logged_in ? '../public/cart.php' : '../public/login.php'; ?>">
             <i class="fas fa-shopping-cart me-1"></i> Cart
+            <?php if ($cart_count > 0): ?>
+              <span class="badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle">
+                <?= $cart_count ?>
+              </span>
+            <?php endif; ?>
           </a>
         </li>
-
         <!-- Track Order -->
         <li class="nav-item">
           <a class="nav-link" href="/public/order_status.php">
