@@ -82,30 +82,38 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
           <?php if (!empty($message)): ?>
             <div class="alert alert-danger"><?= htmlspecialchars($message) ?></div>
           <?php endif; ?>
+<?php if (!empty($_SESSION["error"])): ?>
+  <div class="alert alert-danger"><?= $_SESSION["error"]; unset($_SESSION["error"]); ?></div>
+<?php endif; ?>
 
-          <form method="POST" action="">
-            <div class="mb-3">
-              <label class="form-label">Username</label>
-              <input type="text" name="username" class="form-control" required>
-            </div>
+<?php if (!empty($_SESSION["success"])): ?>
+  <div class="alert alert-success"><?= $_SESSION["success"]; unset($_SESSION["success"]); ?></div>
+<?php endif; ?>
 
-            <div class="mb-3">
-              <label class="form-label">Email</label>
-              <input type="email" name="email" class="form-control" required>
-            </div>
+          <form method="POST" action="register_action.php">
+  <div class="mb-3">
+    <label class="form-label">Username</label>
+    <input type="text" name="username" class="form-control" required>
+  </div>
 
-            <div class="mb-3">
-              <label class="form-label">Password</label>
-              <input type="password" name="password" class="form-control" required>
-            </div>
+  <div class="mb-3">
+    <label class="form-label">Email</label>
+    <input type="email" name="email" class="form-control" required>
+  </div>
 
-            <div class="mb-3">
-              <label class="form-label">Confirm Password</label>
-              <input type="password" name="confirm_password" class="form-control" required>
-            </div>
+  <div class="mb-3">
+    <label class="form-label">Password</label>
+    <input type="password" name="password" class="form-control" required>
+  </div>
 
-            <button type="submit" class="btn btn-primary w-100">Register</button>
-          </form>
+  <div class="mb-3">
+    <label class="form-label">Confirm Password</label>
+    <input type="password" name="confirm_password" class="form-control" required>
+  </div>
+
+  <button type="submit" class="btn btn-primary w-100">Register</button>
+</form>
+
 
           <div class="mt-3 text-center">
             Already have an account? <a href="login.php">Log In</a>
