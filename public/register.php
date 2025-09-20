@@ -43,8 +43,35 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 }
 ?>
 
-<?php include "../includes/header.php"; ?>
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Customer Login - Akuua</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: url("../assets/img/shop1.jpg") center/cover no-repeat fixed;
+    }
+    .login-container {
+      max-width: 400px;
+      margin: 80px auto;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+    .form-control {
+      border-radius: 8px;
+    }
+    .btn-primary {
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
 <div class="container py-5">
   <div class="row justify-content-center">
     <div class="col-md-6 col-lg-5">
@@ -88,5 +115,5 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     </div>
   </div>
 </div>
-
+</body>
 <?php include "../includes/footer.php"; ?>
