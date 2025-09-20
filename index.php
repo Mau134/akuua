@@ -4,8 +4,6 @@ require_once "config/db.php";
 include "includes/header.php";
 
 
-
-
 // Fetch distinct categories
 $categories = [];
 $cat_query = $conn->query("SELECT DISTINCT category FROM products");
@@ -64,14 +62,14 @@ while ($row = $cat_query->fetch_assoc()) {
 <!-- Login Bar -->
 <?php if (!isset($_SESSION['user_id'])): ?>
   <div class="login-bar">
-    <a href="public/login.php" class="btn btn-sm btn-outline-primary">
+    <a href="/public/login.php" class="btn btn-sm btn-outline-primary">
       <i class="fas fa-user me-1"></i> Log In
     </a>
   </div>
 <?php else: ?>
   <div class="login-bar">
     Welcome, <?= htmlspecialchars($_SESSION['username']) ?> |
-    <a href="public/logout.php" class="btn btn-sm btn-outline-danger">Logout</a>
+    <a href="/public/logout.php" class="btn btn-sm btn-outline-danger">Logout</a>
   </div>
 <?php endif; ?>
 
