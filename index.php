@@ -3,6 +3,12 @@ session_start();
 require_once "config/db.php";
 include "includes/header.php";
 
+// Redirect to login if not logged in and trying to access cart
+$_SESSION['redirect_to_cart'] = true;
+header("Location: login.php");
+exit;
+
+
 // Fetch distinct categories
 $categories = [];
 $cat_query = $conn->query("SELECT DISTINCT category FROM products");
@@ -14,7 +20,7 @@ while ($row = $cat_query->fetch_assoc()) {
 <style>
   body {
     position: relative;
-    background: url("assets/img/shop2.jpg") center center fixed;
+    background: url("assets/img/shop1.jpg") center center fixed;
     background-size: cover;
     background-repeat: no-repeat;
     background-attachment: fixed;

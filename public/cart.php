@@ -3,6 +3,12 @@ session_start();
 require_once "../config/db.php";
 include "../includes/header1.php";
 
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php?redirect=cart");
+    exit;
+}
+
 // Initialize cart
 if (!isset($_SESSION['cart'])) {
     $_SESSION['cart'] = [];
@@ -47,7 +53,7 @@ if (!empty($_SESSION['cart'])) {
 <style>
   body {
     position: relative;
-    background: url("../assets/img/shop2.jpg") center center fixed;
+    background: url("../assets/img/shop1.jpg") center center fixed;
     background-size: cover;
     background-repeat: no-repeat;
     background-attachment: fixed;
