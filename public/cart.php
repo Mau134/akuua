@@ -1,5 +1,4 @@
 <?php
-session_start();
 require_once "../config/db.php";
 include "../includes/header1.php";
 
