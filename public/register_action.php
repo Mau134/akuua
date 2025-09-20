@@ -19,7 +19,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 
     // Check if email already exists
-    $check = $conn->prepare("SELECT id FROM `user` WHERE email = ?");
+    $check = $conn->prepare("SELECT id FROM users WHERE email = ?");
     $check->bind_param("s", $email);
     $check->execute();
     $check->store_result();
@@ -37,7 +37,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $role = "customer";
 
     $stmt = $conn->prepare(
-        "INSERT INTO `user` (username, email, password, role, created_at) VALUES (?, ?, ?, ?, NOW())"
+        "INSERT INTO users (username, email, password, role, created_at) VALUES (?, ?, ?, ?, NOW())"
     );
     $stmt->bind_param("ssss", $username, $email, $hashed, $role);
 
@@ -46,7 +46,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         header("Location: login.php");
         exit();
     } else {
-        // Show actual DB error (for debugging only)
         $_SESSION["error"] = "Database error: " . $stmt->error;
         header("Location: register.php");
         exit();
