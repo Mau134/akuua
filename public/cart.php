@@ -1,7 +1,5 @@
 <?php
-require_once "../config/db.php";
-include "../includes/header1.php";
-
+require_once __DIR__ . "/../config/db.php"; // centralized DB + session
 
 // Initialize cart
 if (!isset($_SESSION['cart'])) {
@@ -34,7 +32,7 @@ if (isset($_GET['remove'])) {
 $items = [];
 $total = 0;
 if (!empty($_SESSION['cart'])) {
-    $ids = implode(",", array_keys($_SESSION['cart']));
+    $ids = implode(",", array_map("intval", array_keys($_SESSION['cart'])));
     $result = $conn->query("SELECT * FROM products WHERE id IN ($ids)");
     while ($row = $result->fetch_assoc()) {
         $row['qty'] = $_SESSION['cart'][$row['id']];
@@ -43,6 +41,8 @@ if (!empty($_SESSION['cart'])) {
         $items[] = $row;
     }
 }
+
+include __DIR__ . "/../includes/header.php";
 ?>
 <style>
   body {
@@ -51,12 +51,11 @@ if (!empty($_SESSION['cart'])) {
     background-size: cover;
     background-repeat: no-repeat;
     background-attachment: fixed;
-    background-color: #f8f9fa; /* fallback */
+    background-color: #f8f9fa;
     color: #333;
     z-index: 0;
   }
 
-  /* Overlay to dim the background */
   body::before {
     content: "";
     position: fixed;
@@ -64,10 +63,11 @@ if (!empty($_SESSION['cart'])) {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(255, 255, 255, 0.7); /* white transparent overlay */
+    background: rgba(255, 255, 255, 0.7);
     z-index: -1;
   }
 </style>
+
 <div class="container py-5">
   <h2 class="mb-4 text-center">Your Cart</h2>
   
@@ -91,9 +91,7 @@ if (!empty($_SESSION['cart'])) {
               <td><?= $item['qty'] ?></td>
               <td class="fw-semibold">MWK <?= number_format($item['subtotal'],2) ?></td>
               <td>
-                <a href="cart.php?remove=<?= $item['id'] ?>" class="btn btn-sm btn-outline-danger">
-                  ✕ Remove
-                </a>
+                <a href="cart.php?remove=<?= $item['id'] ?>" class="btn btn-sm btn-outline-danger">✕ Remove</a>
               </td>
             </tr>
           <?php endforeach; ?>
@@ -107,12 +105,10 @@ if (!empty($_SESSION['cart'])) {
       </table>
     </div>
 
-    <!-- Action buttons -->
     <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mt-4">
       <a href="../index.php" class="btn btn-outline-secondary btn-lg w-100 w-md-auto">← Continue Shopping</a>
       <a href="checkout.php" class="btn btn-success btn-lg w-100 w-md-auto">Proceed to Checkout →</a>
     </div>
-
   <?php else: ?>
     <div class="alert alert-info text-center">
       Your cart is empty. <a href="../index.php" class="alert-link">Go shopping</a>
@@ -120,5 +116,4 @@ if (!empty($_SESSION['cart'])) {
   <?php endif; ?>
 </div>
 
-
-<?php include "../includes/footer.php"; ?>
+<?php include __DIR__ . "/../includes/footer.php"; ?>
