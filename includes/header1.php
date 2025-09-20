@@ -1,6 +1,8 @@
 <?php
 session_start();
 require_once "config/db.php";
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
 // Initialize cart count
 $cart_count = isset($_SESSION['cart']) ? array_sum($_SESSION['cart']) : 0;
@@ -66,6 +68,7 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : null;
             <i class="fas fa-truck me-1"></i> Track Order
           </a>
         </li>
+
         <?php if (!$is_logged_in): ?>
           <li class="nav-item">
             <a class="nav-link" href="../public/login.php">
