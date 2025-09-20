@@ -1,3 +1,15 @@
+<?php
+session_start();
+require_once "config/db.php";
+
+// Initialize cart count
+$cart_count = isset($_SESSION['cart']) ? array_sum($_SESSION['cart']) : 0;
+
+// Check login status
+$is_logged_in = isset($_SESSION['user_id']);
+$username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : null;
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
