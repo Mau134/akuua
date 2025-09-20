@@ -2,6 +2,10 @@
 session_start();
 require_once "../config/db.php";
 
+// Show errors while debugging (remove on production)
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $username = trim($_POST["username"]);
     $email = trim($_POST["email"]);
@@ -15,7 +19,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 
     // Check if email already exists
-    $check = $conn->prepare("SELECT id FROM user WHERE email = ?");
+    $check = $conn->prepare("SELECT id FROM `user` WHERE email = ?");
     $check->bind_param("s", $email);
     $check->execute();
     $check->store_result();
@@ -32,7 +36,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     // Default role = customer
     $role = "customer";
 
-    $stmt = $conn->prepare("INSERT INTO user (username, email, password, role, created_at) VALUES (?, ?, ?, ?, NOW())");
+    $stmt = $conn->prepare(
+        "INSERT INTO `user` (username, email, password, role, created_at) VALUES (?, ?, ?, ?, NOW())"
+    );
     $stmt->bind_param("ssss", $username, $email, $hashed, $role);
 
     if ($stmt->execute()) {
@@ -40,7 +46,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         header("Location: login.php");
         exit();
     } else {
-        $_SESSION["error"] = "Error: Could not register. Try again.";
+        // Show actual DB error (for debugging only)
+        $_SESSION["error"] = "Database error: " . $stmt->error;
         header("Location: register.php");
         exit();
     }
