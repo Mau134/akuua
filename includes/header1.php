@@ -54,6 +54,22 @@
             <i class="fas fa-truck me-1"></i> Track Order
           </a>
         </li>
+        <?php if (!$is_logged_in): ?>
+          <li class="nav-item">
+            <a class="nav-link" href="../public/login.php">
+              <i class="fas fa-user me-1"></i> Log In
+            </a>
+          </li>
+        <?php else: ?>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+              <i class="fas fa-user-circle me-1"></i> <?= $username ?>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+              <li><a class="dropdown-item" href="../public/logout.php">Logout</a></li>
+            </ul>
+          </li>
+        <?php endif; ?>
       </ul>
     </div>
   </div>
