@@ -62,7 +62,7 @@ while ($row = $cat_query->fetch_assoc()) {
 <!-- Login Bar -->
 <?php if (!isset($_SESSION['user_id'])): ?>
   <div class="login-bar">
-    <a href="./public/login.php" class="btn btn-sm btn-outline-primary">
+    <a href="../public/login.php" class="btn btn-sm btn-outline-primary">
       <i class="fas fa-user me-1"></i> Log In
     </a>
   </div>
