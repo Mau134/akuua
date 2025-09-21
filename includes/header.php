@@ -87,3 +87,11 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : null;
 
 <main class="flex-grow-1">
   <div class="container my-5">
+
+    <!-- ✅ Flash Message -->
+    <?php if (isset($_SESSION['success'])): ?>
+      <div class="alert alert-success text-center">
+        <?= htmlspecialchars($_SESSION['success']); ?>
+      </div>
+      <?php unset($_SESSION['success']); ?>
+    <?php endif; ?>
