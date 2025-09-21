@@ -104,19 +104,15 @@ while ($row = $cat_query->fetch_assoc()) {
                 <p class="fw-bold mb-2 text-success">MWK <?= number_format($row['price'],2) ?></p>
                 <?php if ($row['stock'] <= 0): ?>
                   <span class="badge bg-danger">Out of Stock</span>
-                <?php else: ?>
-<?php if (!isset($_SESSION['user_id'])): ?>
-  <!-- If NOT logged in, send to login page with add-to-cart info -->
-  <a href="public/login.php?redirect=../index.php&add=<?= $row['id'] ?>" 
-     class="btn btn-primary mt-auto">
-    Add to Cart
-  </a>
-<?php else: ?>
-  <!-- If logged in, go straight to cart -->
-  <a href="public/cart.php?add=<?= $row['id'] ?>" class="btn btn-primary mt-auto">
-    Add to Cart
-  </a>
-<?php endif; ?>
+            <?php if (!isset($_SESSION['user_id'])): ?>
+              <!-- Force login if not logged in -->
+              <a href="public/login.php?redirect=../index.php&add=<?= $row['id'] ?>" 
+                 class="btn btn-primary mt-auto">Add to Cart</a>
+            <?php else: ?>
+              <!-- Add directly to cart if logged in -->
+              <a href="public/cart.php?add=<?= $row['id'] ?>" 
+                 class="btn btn-success mt-auto">Add to Cart</a>
+            <?php endif; ?>
                 <?php endif; ?>
               </div>
             </div>

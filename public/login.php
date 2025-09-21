@@ -16,27 +16,27 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $result = $stmt->get_result();
     $user = $result->fetch_assoc();
 
-if ($user && password_verify($password, $user['password'])) {
-    // Login success
-    $_SESSION["user_id"] = $user["id"];
-    $_SESSION["username"] = $user["username"];
+    if ($user && password_verify($password, $user['password'])) {
+        // Login success
+        $_SESSION["user_id"] = $user["id"];
+        $_SESSION["username"] = $user["username"];
 
-    // Always redirect to the main folder's index if none provided
-$redirect = $_GET['redirect'] ?? '../index.php';
-$add_id   = $_GET['add'] ?? null;
+        // Redirect target
+        $redirect = $_GET['redirect'] ?? '../index.php';
+        $add_id   = $_GET['add'] ?? null;
 
-// If login came from Add-to-Cart, add the item
-if ($add_id) {
-    if (!isset($_SESSION['cart'][$add_id])) {
-        $_SESSION['cart'][$add_id] = 1;
+        // If login came from Add-to-Cart, add the item
+        if ($add_id) {
+            if (!isset($_SESSION['cart'][$add_id])) {
+                $_SESSION['cart'][$add_id] = 1;
+            } else {
+                $_SESSION['cart'][$add_id]++;
+            }
+        }
+
+        header("Location: $redirect");
+        exit;
     } else {
-        $_SESSION['cart'][$add_id]++;
-    }
-}
-header("Location: $redirect");
-exit;
-
-} else {
         $error = "Invalid email or password!";
     }
 }
@@ -49,23 +49,9 @@ exit;
   <title>Customer Login - Akuua</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-  <style>
-    body {
-      background: url("../assets/img/shop1.jpg") center/cover no-repeat fixed;
-    }
-    .login-container {
-      max-width: 400px;
-      margin: 80px auto;
-      background: rgba(255, 255, 255, 0.9);
-      border-radius: 12px;
-      padding: 30px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-    }
-  </style>
 </head>
 <body>
-<div class="login-container">
+<div class="login-container" style="max-width:400px;margin:80px auto;padding:30px;background:#fff;border-radius:12px;">
   <h3 class="text-center mb-4">Log In</h3>
 
   <?php if (!empty($error)): ?>
