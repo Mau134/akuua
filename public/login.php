@@ -23,19 +23,19 @@ if ($user && password_verify($password, $user['password'])) {
 
     // Always redirect to the main folder's index if none provided
 $redirect = $_GET['redirect'] ?? '../index.php';
-    $add_id   = $_GET['add'] ?? null;
+$add_id   = $_GET['add'] ?? null;
 
-    // If login came from Add-to-Cart, add the item
-    if ($add_id) {
-        if (!isset($_SESSION['cart'][$add_id])) {
-            $_SESSION['cart'][$add_id] = 1;
-        } else {
-            $_SESSION['cart'][$add_id]++;
-        }
+// If login came from Add-to-Cart, add the item
+if ($add_id) {
+    if (!isset($_SESSION['cart'][$add_id])) {
+        $_SESSION['cart'][$add_id] = 1;
+    } else {
+        $_SESSION['cart'][$add_id]++;
     }
+}
+header("Location: $redirect");
+exit;
 
-    header("Location: $redirect");
-    exit;
 } else {
         $error = "Invalid email or password!";
     }
