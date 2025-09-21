@@ -104,6 +104,7 @@ while ($row = $cat_query->fetch_assoc()) {
                 <p class="fw-bold mb-2 text-success">MWK <?= number_format($row['price'],2) ?></p>
                 <?php if ($row['stock'] <= 0): ?>
                   <span class="badge bg-danger">Out of Stock</span>
+                <?php else: ?>
             <?php if (!isset($_SESSION['user_id'])): ?>
               <!-- Force login if not logged in -->
               <a href="public/login.php?redirect=../index.php&add=<?= $row['id'] ?>" 
