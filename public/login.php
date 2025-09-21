@@ -4,41 +4,40 @@ require_once "../config/db.php";
 
 $error = "";
 
-// Handle login
+// Handle form submission
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $email = trim($_POST['email']);
-    $password = trim($_POST['password']);
+    $email = trim($_POST["email"]);
+    $password = $_POST["password"];
 
-    $stmt = $conn->prepare("SELECT id, username, password, role FROM users WHERE email = ?");
+    // Fetch user by email
+    $stmt = $conn->prepare("SELECT id, username, password FROM users WHERE email = ?");
     $stmt->bind_param("s", $email);
     $stmt->execute();
     $result = $stmt->get_result();
+    $user = $result->fetch_assoc();
 
-    if ($result->num_rows === 1) {
-        $user = $result->fetch_assoc();
+    if ($user && password_verify($password, $user['password'])) {
+        // Login success
+        $_SESSION["user_id"] = $user["id"];
+        $_SESSION["username"] = $user["username"];
 
-        // ✅ Ensure this is a customer account
-        if ($user['role'] !== 'customer') {
-            $error = "This login page is for customers only!";
-        } elseif (password_verify($password, $user['password'])) {
-            // Login success
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['username'] = $user['username'];
-            $_SESSION['role'] = $user['role'];
+        // Handle redirect + add-to-cart logic
+        $redirect = $_GET['redirect'] ?? '../index.php';
+        $add_id   = $_GET['add'] ?? null;
 
-            // Redirect back to cart if needed
-            if (isset($_SESSION['redirect_to_cart'])) {
-                unset($_SESSION['redirect_to_cart']);
-                header("Location: cart.php");
+        // If login came from Add-to-Cart, add the item
+        if ($add_id) {
+            if (!isset($_SESSION['cart'][$add_id])) {
+                $_SESSION['cart'][$add_id] = 1;
             } else {
-                header("Location: ../index.php");
+                $_SESSION['cart'][$add_id]++;
             }
-            exit;
-        } else {
-            $error = "Invalid email or password.";
         }
+
+        header("Location: $redirect");
+        exit;
     } else {
-        $error = "No account found with that email.";
+        $error = "Invalid email or password!";
     }
 }
 ?>
@@ -63,41 +62,31 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       padding: 30px;
       box-shadow: 0 8px 20px rgba(0,0,0,0.2);
     }
-    .form-control {
-      border-radius: 8px;
-    }
-    .btn-primary {
-      border-radius: 8px;
-    }
   </style>
 </head>
 <body>
-
 <div class="login-container">
-  <h3 class="text-center mb-4"><i class="fas fa-user-circle me-2"></i>Customer Login</h3>
+  <h3 class="text-center mb-4">Log In</h3>
 
-  <?php if ($error): ?>
+  <?php if (!empty($error)): ?>
     <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
   <?php endif; ?>
 
   <form method="POST" action="">
     <div class="mb-3">
-      <label for="email" class="form-label">Email Address</label>
-      <input type="email" name="email" id="email" class="form-control" required>
+      <label class="form-label">Email</label>
+      <input type="email" name="email" class="form-control" required>
     </div>
-
     <div class="mb-3">
-      <label for="password" class="form-label">Password</label>
-      <input type="password" name="password" id="password" class="form-control" required>
+      <label class="form-label">Password</label>
+      <input type="password" name="password" class="form-control" required>
     </div>
-
-    <button type="submit" class="btn btn-primary w-100">Login</button>
+    <button type="submit" class="btn btn-primary w-100">Log In</button>
   </form>
 
-  <div class="text-center mt-3">
-    <small>Don’t have an account? <a href="register.php">Register</a></small>
+  <div class="mt-3 text-center">
+    Don’t have an account? <a href="register.php">Register</a>
   </div>
 </div>
-
 </body>
 </html>
