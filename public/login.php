@@ -22,7 +22,7 @@ if ($user && password_verify($password, $user['password'])) {
     $_SESSION["username"] = $user["username"];
 
     // Always redirect to the main folder's index if none provided
-    $redirect = $_GET['redirect'] ?? '../index.php';
+$redirect = $_GET['redirect'] ?? '../index.php';
     $add_id   = $_GET['add'] ?? null;
 
     // If login came from Add-to-Cart, add the item
