@@ -16,27 +16,27 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $result = $stmt->get_result();
     $user = $result->fetch_assoc();
 
-    if ($user && password_verify($password, $user['password'])) {
-        // Login success
-        $_SESSION["user_id"] = $user["id"];
-        $_SESSION["username"] = $user["username"];
+if ($user && password_verify($password, $user['password'])) {
+    // Login success
+    $_SESSION["user_id"] = $user["id"];
+    $_SESSION["username"] = $user["username"];
 
-        // Handle redirect + add-to-cart logic
-        $redirect = $_GET['redirect'] ?? './index.php';
-        $add_id   = $_GET['add'] ?? null;
+    // Always redirect to the main folder's index if none provided
+    $redirect = $_GET['redirect'] ?? '../index.php';
+    $add_id   = $_GET['add'] ?? null;
 
-        // If login came from Add-to-Cart, add the item
-        if ($add_id) {
-            if (!isset($_SESSION['cart'][$add_id])) {
-                $_SESSION['cart'][$add_id] = 1;
-            } else {
-                $_SESSION['cart'][$add_id]++;
-            }
+    // If login came from Add-to-Cart, add the item
+    if ($add_id) {
+        if (!isset($_SESSION['cart'][$add_id])) {
+            $_SESSION['cart'][$add_id] = 1;
+        } else {
+            $_SESSION['cart'][$add_id]++;
         }
+    }
 
-        header("Location: $redirect");
-        exit;
-    } else {
+    header("Location: $redirect");
+    exit;
+} else {
         $error = "Invalid email or password!";
     }
 }
