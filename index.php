@@ -47,6 +47,12 @@ while ($row = $cat_query->fetch_assoc()) {
   .category-bar a:hover {
     color: #007bff;
   }
+    .product-img {
+    height: 160px;          /* smaller height */
+    width: 100%;            /* responsive width */
+    object-fit: cover;      /* keeps proportions without stretching */
+    border-radius: 12px;    /* makes corners rounded */
+  }
 </style>
 
 <!-- Hero Section -->
@@ -93,10 +99,14 @@ while ($row = $cat_query->fetch_assoc()) {
           <div class="col-md-4 col-lg-3">
             <div class="card shadow-sm h-100">
               <?php if (!empty($row['image'])): ?>
-                <img src="uploads/<?= htmlspecialchars($row['image']) ?>" class="card-img-top" alt="<?= htmlspecialchars($row['name']) ?>" style="height:200px; object-fit:cover;">
-              <?php else: ?>
-                <img src="assets/no-image.png" class="card-img-top" alt="No image" style="height:200px; object-fit:cover;">
-              <?php endif; ?>
+  <img src="uploads/<?= htmlspecialchars($row['image']) ?>" 
+       class="card-img-top product-img" 
+       alt="<?= htmlspecialchars($row['name']) ?>">
+<?php else: ?>
+  <img src="assets/no-image.png" 
+       class="card-img-top product-img" 
+       alt="No image">
+<?php endif; ?>
 
               <div class="card-body d-flex flex-column">
                 <h5 class="card-title"><?= htmlspecialchars($row['name']) ?></h5>
