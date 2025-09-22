@@ -13,8 +13,7 @@ if (isset($_POST['approve_order'])) {
     $stmt = $conn->prepare("SELECT customer_name, customer_email, total, delivery_address FROM orders WHERE id=?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
-    $result = $stmt->get_result();
-    $order = $result->fetch_assoc();
+    $order = $stmt->get_result()->fetch_assoc();
 
     if ($order) {
         $conn->query("UPDATE orders SET status='Approved' WHERE id=$id");
@@ -35,8 +34,7 @@ if (isset($_POST['decline_order'])) {
     $stmt = $conn->prepare("SELECT customer_name, customer_email, total FROM orders WHERE id=?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
-    $result = $stmt->get_result();
-    $order = $result->fetch_assoc();
+    $order = $stmt->get_result()->fetch_assoc();
 
     if ($order) {
         $conn->query("UPDATE orders SET status='Declined' WHERE id=$id");
@@ -47,6 +45,13 @@ if (isset($_POST['decline_order'])) {
 
         sendMail($order['customer_email'], "Order #$id Declined - Akuua Store", $message);
     }
+}
+
+// Delete rejected order
+if (isset($_POST['delete_order'])) {
+    $id = intval($_POST['id']);
+    $conn->query("DELETE FROM orders WHERE id=$id");
+    echo "<div class='alert alert-success'>Order #$id deleted successfully.</div>";
 }
 
 // Mail helper
@@ -67,14 +72,15 @@ function sendMail($to, $subject, $body) {
         $mail->Subject = $subject;
         $mail->Body    = $body;
         $mail->send();
-        echo "<div class='alert alert-success'>Email sent to $to.</div>";
     } catch (Exception $e) {
         echo "<div class='alert alert-danger'>Mailer Error: {$mail->ErrorInfo}</div>";
     }
 }
 
-// Fetch orders
-$result = $conn->query("SELECT * FROM orders ORDER BY id DESC");
+// Fetch orders grouped by status
+$approvedOrders = $conn->query("SELECT * FROM orders WHERE status='Approved' ORDER BY id DESC");
+$declinedOrders = $conn->query("SELECT * FROM orders WHERE status='Declined' ORDER BY id DESC");
+$otherOrders    = $conn->query("SELECT * FROM orders WHERE status NOT IN ('Approved','Declined') ORDER BY id DESC");
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -87,8 +93,11 @@ $result = $conn->query("SELECT * FROM orders ORDER BY id DESC");
 <div class="container py-5">
   <h2 class="mb-4">Manage Orders</h2>
 
-  <div class="card shadow-sm">
+  <!-- Approved Orders -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-success text-white">Approved Orders</div>
     <div class="card-body">
+      <?php if ($approvedOrders->num_rows > 0): ?>
       <table class="table table-hover align-middle">
         <thead>
           <tr>
@@ -98,44 +107,96 @@ $result = $conn->query("SELECT * FROM orders ORDER BY id DESC");
             <th>Payment</th>
             <th>Delivery Address</th>
             <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+        <?php while($row = $approvedOrders->fetch_assoc()): ?>
+          <tr>
+            <td><?= $row['id'] ?></td>
+            <td><?= htmlspecialchars($row['customer_name']) ?><br><small><?= htmlspecialchars($row['customer_email']) ?></small></td>
+            <td>MWK<?= number_format($row['total'], 2) ?></td>
+            <td><?= htmlspecialchars($row['payment_method']) ?></td>
+            <td><?= nl2br(htmlspecialchars($row['delivery_address'])) ?></td>
+            <td><span class="badge bg-success">Approved</span></td>
+          </tr>
+        <?php endwhile; ?>
+        </tbody>
+      </table>
+      <?php else: ?>
+        <p class="text-muted">No approved orders yet.</p>
+      <?php endif; ?>
+    </div>
+  </div>
+
+  <!-- Declined Orders -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-danger text-white">Declined Orders</div>
+    <div class="card-body">
+      <?php if ($declinedOrders->num_rows > 0): ?>
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Customer</th>
+            <th>Total</th>
+            <th>Payment</th>
+            <th>Status</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-        <?php while($row = $result->fetch_assoc()): ?>
+        <?php while($row = $declinedOrders->fetch_assoc()): ?>
           <tr>
             <td><?= $row['id'] ?></td>
-            <td>
-              <?= htmlspecialchars($row['customer_name']) ?><br>
-              <small><?= htmlspecialchars($row['customer_email']) ?></small>
-            </td>
+            <td><?= htmlspecialchars($row['customer_name']) ?><br><small><?= htmlspecialchars($row['customer_email']) ?></small></td>
             <td>MWK<?= number_format($row['total'], 2) ?></td>
+            <td><?= htmlspecialchars($row['payment_method']) ?></td>
+            <td><span class="badge bg-danger">Declined</span></td>
             <td>
-              <b><?= htmlspecialchars($row['payment_method']) ?></b><br>
-              <?php if ($row['payment_proof']): ?>
-                <a href="../uploads/<?= $row['payment_proof'] ?>" target="_blank" class="btn btn-sm btn-outline-primary mt-1">View Proof</a>
-              <?php else: ?>
-                <span class="text-muted">No proof</span>
-              <?php endif; ?>
+              <form method="post" class="d-inline">
+                <input type="hidden" name="id" value="<?= $row['id'] ?>">
+                <button type="submit" name="delete_order" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this rejected order?')">Delete</button>
+              </form>
             </td>
-            <td><?= nl2br(htmlspecialchars($row['delivery_address'])) ?></td>
+          </tr>
+        <?php endwhile; ?>
+        </tbody>
+      </table>
+      <?php else: ?>
+        <p class="text-muted">No declined orders yet.</p>
+      <?php endif; ?>
+    </div>
+  </div>
+
+  <!-- Other Orders (Pending / In Progress etc.) -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-secondary text-white">Pending / In Progress Orders</div>
+    <div class="card-body">
+      <?php if ($otherOrders->num_rows > 0): ?>
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Customer</th>
+            <th>Total</th>
+            <th>Payment</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+        <?php while($row = $otherOrders->fetch_assoc()): ?>
+          <tr>
+            <td><?= $row['id'] ?></td>
+            <td><?= htmlspecialchars($row['customer_name']) ?><br><small><?= htmlspecialchars($row['customer_email']) ?></small></td>
+            <td>MWK<?= number_format($row['total'], 2) ?></td>
+            <td><?= htmlspecialchars($row['payment_method']) ?></td>
+            <td><span class="badge bg-warning"><?= $row['status'] ?></span></td>
             <td>
-              <span class="badge bg-<?php 
-                echo $row['status']=='Approved' ? 'success' : 
-                     ($row['status']=='In Progress' ? 'warning' : 
-                     ($row['status']=='Declined' ? 'danger' : 'secondary')); 
-              ?>">
-                <?= $row['status'] ?>
-              </span>
-            </td>
-            <td>
-              <!-- Approve button -->
               <form method="post" class="d-inline">
                 <input type="hidden" name="id" value="<?= $row['id'] ?>">
                 <button type="submit" name="approve_order" class="btn btn-sm btn-success">Approve</button>
               </form>
-
-              <!-- Decline button -->
               <form method="post" class="d-inline">
                 <input type="hidden" name="id" value="<?= $row['id'] ?>">
                 <button type="submit" name="decline_order" class="btn btn-sm btn-danger">Decline</button>
@@ -145,8 +206,12 @@ $result = $conn->query("SELECT * FROM orders ORDER BY id DESC");
         <?php endwhile; ?>
         </tbody>
       </table>
+      <?php else: ?>
+        <p class="text-muted">No pending orders right now.</p>
+      <?php endif; ?>
     </div>
   </div>
+
 </div>
 <?php include "./includes/footer.php"; ?>
 </body>
