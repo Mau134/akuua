@@ -11,7 +11,7 @@
   <link href="../assets/css/style.css" rel="stylesheet">
 
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">
 
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">

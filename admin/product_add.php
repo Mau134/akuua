@@ -12,13 +12,10 @@ if (isset($_POST['submit'])) {
 
     // Handle file upload
     if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
-        // Create a unique name for the uploaded file
         $image_name = time() . "_" . basename($_FILES['image']['name']);
-        
         $target_dir = "../uploads/";
         $target_file = $target_dir . $image_name;
 
-        // Move the file
         if (move_uploaded_file($_FILES['image']['tmp_name'], $target_file)) {
             echo "<div class='alert alert-success'>File uploaded successfully!</div>";
         } else {
@@ -27,10 +24,8 @@ if (isset($_POST['submit'])) {
     }
 
     // Insert into DB
-$stmt = $conn->prepare("INSERT INTO products (name, description, price, stock, category, image) VALUES (?, ?, ?, ?, ?, ?)");
-$stmt->bind_param("sssdss", $name, $description, $price, $stock, $category, $image_name);
-$stmt->execute();
-
+    $stmt = $conn->prepare("INSERT INTO products (name, description, price, stock, category, image) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("sssdss", $name, $description, $price, $stock, $category, $image_name);
 
     if ($stmt->execute()) {
         echo "<div class='alert alert-success'>Product added successfully!</div>";
@@ -63,15 +58,14 @@ $stmt->execute();
       <input type="number" name="stock" class="form-control" required>
     </div>
 
+    <!-- Custom Category Input -->
     <div class="mb-3">
       <label for="category" class="form-label">Category</label>
-      <select name="category" id="category" class="form-control" required>
-        <option value="">-- Select Category --</option>
-        <option value="Cup">Cup</option>
-        <option value="Shoes">Shoes</option>
-        <option value="Clothes">Clothes</option>
-        <option value="Bags">Bags</option>
-      </select>
+      <input type="text" name="category" id="category" class="form-control" 
+             placeholder="Enter a category (e.g. Shoes, Electronics, Bags)" required>
+      <small class="form-text text-muted">
+        Type a new category or reuse an existing one.
+      </small>
     </div>
 
     <div class="mb-3">
