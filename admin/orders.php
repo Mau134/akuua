@@ -1,4 +1,5 @@
 <?php
+session_start();
 require '../vendor/autoload.php'; // Composer autoload
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -24,9 +25,10 @@ if (isset($_POST['approve_order'])) {
         Thank you for shopping with us.<br><br>- Akuua Store Team";
 
         sendMail($order['customer_email'], "Order #$id Approved - Akuua Store", $message);
+        $_SESSION['flash'] = "✅ Order #$id has been approved successfully.";
     }
 
-    header("Location: orders.php"); // 🔄 Refresh page
+    header("Location: orders.php");
     exit;
 }
 
@@ -47,9 +49,10 @@ if (isset($_POST['decline_order'])) {
         Please contact support for more details.<br><br>- Akuua Store Team";
 
         sendMail($order['customer_email'], "Order #$id Declined - Akuua Store", $message);
+        $_SESSION['flash'] = "⚠️ Order #$id has been declined.";
     }
 
-    header("Location: orders.php"); // 🔄 Refresh page
+    header("Location: orders.php");
     exit;
 }
 
@@ -57,7 +60,8 @@ if (isset($_POST['decline_order'])) {
 if (isset($_POST['delete_order'])) {
     $id = intval($_POST['id']);
     $conn->query("DELETE FROM orders WHERE id=$id");
-    header("Location: orders.php"); // 🔄 Refresh page
+    $_SESSION['flash'] = "🗑️ Order #$id has been deleted successfully.";
+    header("Location: orders.php");
     exit;
 }
 
@@ -99,6 +103,14 @@ $otherOrders    = $conn->query("SELECT * FROM orders WHERE status NOT IN ('Appro
 <body class="bg-light">
 <div class="container py-5">
   <h2 class="mb-4">Manage Orders</h2>
+
+  <!-- Flash Messages -->
+  <?php if (isset($_SESSION['flash'])): ?>
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+      <?= $_SESSION['flash']; unset($_SESSION['flash']); ?>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  <?php endif; ?>
 
   <!-- Approved Orders -->
   <div class="card shadow-sm mb-4">
