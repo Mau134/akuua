@@ -4,19 +4,19 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
 include '../config/db.php';
+include "./includes/header.php";
 
-// ------------------ APPROVE ORDER ------------------
+// Approve order
 if (isset($_POST['approve_order'])) {
     $id = intval($_POST['id']);
+    
     $stmt = $conn->prepare("SELECT customer_name, customer_email, total, delivery_address FROM orders WHERE id=?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
     $order = $stmt->get_result()->fetch_assoc();
 
     if ($order) {
-        $upd = $conn->prepare("UPDATE orders SET status='Approved' WHERE id=?");
-        $upd->bind_param("i", $id);
-        $upd->execute();
+        $conn->query("UPDATE orders SET status='Approved' WHERE id=$id");
 
         $message = "Dear {$order['customer_name']},<br><br>
         Your order (ID: $id) with a total of MWK " . number_format($order['total'], 2) . " has been <b>approved</b>.<br><br>
@@ -25,20 +25,22 @@ if (isset($_POST['approve_order'])) {
 
         sendMail($order['customer_email'], "Order #$id Approved - Akuua Store", $message);
     }
+
+    header("Location: orders.php"); // 🔄 Refresh page
+    exit;
 }
 
-// ------------------ DECLINE ORDER ------------------
+// Decline order
 if (isset($_POST['decline_order'])) {
     $id = intval($_POST['id']);
+    
     $stmt = $conn->prepare("SELECT customer_name, customer_email, total FROM orders WHERE id=?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
     $order = $stmt->get_result()->fetch_assoc();
 
     if ($order) {
-        $upd = $conn->prepare("UPDATE orders SET status='Declined' WHERE id=?");
-        $upd->bind_param("i", $id);
-        $upd->execute();
+        $conn->query("UPDATE orders SET status='Declined' WHERE id=$id");
 
         $message = "Dear {$order['customer_name']},<br><br>
         Unfortunately, your order (ID: $id) with a total of MWK " . number_format($order['total'], 2) . " has been <b>declined</b>.<br><br>
@@ -46,18 +48,20 @@ if (isset($_POST['decline_order'])) {
 
         sendMail($order['customer_email'], "Order #$id Declined - Akuua Store", $message);
     }
+
+    header("Location: orders.php"); // 🔄 Refresh page
+    exit;
 }
 
-// ------------------ DELETE REJECTED ORDER ------------------
+// Delete rejected order
 if (isset($_POST['delete_order'])) {
     $id = intval($_POST['id']);
-    $del = $conn->prepare("DELETE FROM orders WHERE id=?");
-    $del->bind_param("i", $id);
-    $del->execute();
-    echo "<div class='alert alert-success'>Order #$id deleted successfully.</div>";
+    $conn->query("DELETE FROM orders WHERE id=$id");
+    header("Location: orders.php"); // 🔄 Refresh page
+    exit;
 }
 
-// ------------------ MAIL HELPER ------------------
+// Mail helper
 function sendMail($to, $subject, $body) {
     $mail = new PHPMailer(true);
     try {
@@ -80,12 +84,10 @@ function sendMail($to, $subject, $body) {
     }
 }
 
-// ------------------ FETCH ORDERS ------------------
+// Fetch orders grouped by status
 $approvedOrders = $conn->query("SELECT * FROM orders WHERE status='Approved' ORDER BY id DESC");
 $declinedOrders = $conn->query("SELECT * FROM orders WHERE status='Declined' ORDER BY id DESC");
 $otherOrders    = $conn->query("SELECT * FROM orders WHERE status NOT IN ('Approved','Declined') ORDER BY id DESC");
-
-include "./includes/header.php";
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -173,7 +175,7 @@ include "./includes/header.php";
     </div>
   </div>
 
-  <!-- Pending / In Progress Orders -->
+  <!-- Other Orders (Pending / In Progress etc.) -->
   <div class="card shadow-sm mb-4">
     <div class="card-header bg-secondary text-white">Pending / In Progress Orders</div>
     <div class="card-body">
@@ -196,7 +198,7 @@ include "./includes/header.php";
             <td><?= htmlspecialchars($row['customer_name']) ?><br><small><?= htmlspecialchars($row['customer_email']) ?></small></td>
             <td>MWK<?= number_format($row['total'], 2) ?></td>
             <td><?= htmlspecialchars($row['payment_method']) ?></td>
-            <td><span class="badge bg-warning text-dark"><?= $row['status'] ?></span></td>
+            <td><span class="badge bg-warning"><?= $row['status'] ?></span></td>
             <td>
               <form method="post" class="d-inline">
                 <input type="hidden" name="id" value="<?= $row['id'] ?>">
