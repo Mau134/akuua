@@ -15,17 +15,17 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : null;
   <title>Akuua</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="../assets/css/style.css" rel="stylesheet">
+  <link href="/assets/css/style.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-  <link rel="icon" type="image/png" href="../assets/img/Logo.jpg">
-
+  <link rel="icon" type="image/png" href="/assets/img/Logo.jpg">
 </head>
 <body class="d-flex flex-column min-vh-100">
 
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container">
-    <a class="navbar-brand" href="../index.php">
+    <!-- ✅ Always points to ROOT index.php -->
+    <a class="navbar-brand" href="/index.php">
       <i class="fas fa-shopping-bag me-2"></i> Akuua
     </a>
 
@@ -48,7 +48,7 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : null;
 
         <!-- Cart -->
         <li class="nav-item">
-          <a class="nav-link position-relative" href="../public/cart.php">
+          <a class="nav-link position-relative" href="/public/cart.php">
             <i class="fas fa-shopping-cart me-1"></i> Cart
             <?php if ($cart_count > 0): ?>
               <span class="badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle">
@@ -68,7 +68,8 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : null;
         <!-- Login / User Menu -->
         <?php if (!$is_logged_in): ?>
           <li class="nav-item">
-            <a class="nav-link" href="../public/login.php?redirect=/index.php">
+            <!-- ✅ Redirects correctly to ROOT index.php after login -->
+            <a class="nav-link" href="/public/login.php?redirect=/index.php">
               <i class="fas fa-user me-1"></i> Log In
             </a>
           </li>
@@ -78,7 +79,7 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : null;
               <i class="fas fa-user-circle me-1"></i> <?= $username ?>
             </a>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-              <li><a class="dropdown-item" href="../public/logout.php">Logout</a></li>
+              <li><a class="dropdown-item" href="/public/logout.php">Logout</a></li>
             </ul>
           </li>
         <?php endif; ?>
