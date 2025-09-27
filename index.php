@@ -3,11 +3,17 @@ session_start();
 require_once "config/db.php";
 include "includes/header.php";
 
+// Handle search
+$searchTerm = "";
+if (isset($_GET['search']) && !empty($_GET['search'])) {
+  $searchTerm = trim($_GET['search']);
+}
+
 // Fetch distinct categories
 $categories = [];
 $cat_query = $conn->query("SELECT DISTINCT category FROM products");
 while ($row = $cat_query->fetch_assoc()) {
-    $categories[] = $row['category'];
+  $categories[] = $row['category'];
 }
 ?>
 
@@ -47,11 +53,12 @@ while ($row = $cat_query->fetch_assoc()) {
   .category-bar a:hover {
     color: #007bff;
   }
-    .product-img {
-    height: 160px;          /* smaller height */
-    width: 100%;            /* responsive width */
-    object-fit: cover;      /* keeps proportions without stretching */
-    border-radius: 12px;    /* makes corners rounded */
+
+  .product-img {
+    height: 160px;
+    width: 100%;
+    object-fit: cover;
+    border-radius: 12px;
   }
 </style>
 
@@ -65,7 +72,6 @@ while ($row = $cat_query->fetch_assoc()) {
         <a href="#products" class="btn btn-primary btn-lg px-4">Shop Now</a>
       </div>
     </div>
-    <!-- Add more slides if needed -->
   </div>
   <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
     <span class="carousel-control-prev-icon"></span>
@@ -82,12 +88,69 @@ while ($row = $cat_query->fetch_assoc()) {
   <?php endforeach; ?>
 </div>
 
+<!-- 🔍 Search Bar -->
+<div class="container mt-4">
+  <form method="GET" action="index.php" class="d-flex justify-content-center">
+    <input type="text" name="search" class="form-control w-50 me-2" 
+           placeholder="Search for products..." value="<?= htmlspecialchars($searchTerm) ?>">
+    <button type="submit" class="btn btn-primary">Search</button>
+  </form>
+</div>
+
 <!-- Products Section -->
 <div id="products" class="container py-5">
   <h2 class="text-center mb-5">Our Products</h2>
-  <?php foreach ($categories as $cat): ?>
+
+  <?php
+  if (!empty($searchTerm)) {
+    // Show search results
+    echo "<h3 class='text-center my-4'>Search Results for: " . htmlspecialchars($searchTerm) . "</h3>";
+    $stmt = $conn->prepare("SELECT * FROM products WHERE name LIKE ? OR description LIKE ?");
+    $likeTerm = "%" . $searchTerm . "%";
+    $stmt->bind_param("ss", $likeTerm, $likeTerm);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    echo '<div class="row g-3 mb-5">';
+    if ($result->num_rows > 0) {
+      while ($row = $result->fetch_assoc()) {
+  ?>
+        <div class="col-6 col-md-4 col-lg-3">
+          <div class="card shadow-sm h-100">
+            <?php if (!empty($row['image'])): ?>
+              <img src="uploads/<?= htmlspecialchars($row['image']) ?>" class="card-img-top product-img" alt="<?= htmlspecialchars($row['name']) ?>">
+            <?php else: ?>
+              <img src="assets/no-image.png" class="card-img-top product-img" alt="No image">
+            <?php endif; ?>
+
+            <div class="card-body d-flex flex-column">
+              <h5 class="card-title"><?= htmlspecialchars($row['name']) ?></h5>
+              <p class="card-text text-muted"><?= substr($row['description'], 0, 70) ?>...</p>
+              <p class="fw-bold mb-2 text-success">MWK <?= number_format($row['price'],2) ?></p>
+              <?php if ($row['stock'] <= 0): ?>
+                <span class="badge bg-danger">Out of Stock</span>
+              <?php else: ?>
+                <?php if (!isset($_SESSION['user_id'])): ?>
+                  <a href="/public/login.php?redirect=/index.php&add=<?= $row['id'] ?>" class="btn btn-primary">Add to Cart</a>
+                <?php else: ?>
+                  <a href="public/cart.php?add=<?= $row['id'] ?>" class="btn btn-success mt-auto">Add to Cart</a>
+                <?php endif; ?>
+              <?php endif; ?>
+            </div>
+          </div>
+        </div>
+  <?php
+      }
+    } else {
+      echo "<p class='text-center text-muted'>No products found.</p>";
+    }
+    echo '</div>';
+  } else {
+    // Show by category
+    foreach ($categories as $cat):
+  ?>
     <h3 id="cat-<?= urlencode($cat) ?>" class="text-center my-4"><?= htmlspecialchars($cat) ?></h3>
-    <div class="row g-4 mb-5">
+    <div class="row g-3 mb-5">
       <?php
       $stmt = $conn->prepare("SELECT * FROM products WHERE category = ?");
       $stmt->bind_param("s", $cat);
@@ -96,17 +159,13 @@ while ($row = $cat_query->fetch_assoc()) {
       ?>
       <?php if ($result->num_rows > 0): ?>
         <?php while ($row = $result->fetch_assoc()): ?>
-          <div class="col-md-4 col-lg-3">
+          <div class="col-6 col-md-4 col-lg-3"> <!-- ✅ More items per row -->
             <div class="card shadow-sm h-100">
               <?php if (!empty($row['image'])): ?>
-  <img src="uploads/<?= htmlspecialchars($row['image']) ?>" 
-       class="card-img-top product-img" 
-       alt="<?= htmlspecialchars($row['name']) ?>">
-<?php else: ?>
-  <img src="assets/no-image.png" 
-       class="card-img-top product-img" 
-       alt="No image">
-<?php endif; ?>
+                <img src="uploads/<?= htmlspecialchars($row['image']) ?>" class="card-img-top product-img" alt="<?= htmlspecialchars($row['name']) ?>">
+              <?php else: ?>
+                <img src="assets/no-image.png" class="card-img-top product-img" alt="No image">
+              <?php endif; ?>
 
               <div class="card-body d-flex flex-column">
                 <h5 class="card-title"><?= htmlspecialchars($row['name']) ?></h5>
@@ -115,16 +174,11 @@ while ($row = $cat_query->fetch_assoc()) {
                 <?php if ($row['stock'] <= 0): ?>
                   <span class="badge bg-danger">Out of Stock</span>
                 <?php else: ?>
-            <?php if (!isset($_SESSION['user_id'])): ?>
-              <!-- Force login if not logged in -->
-              <a href="/public/login.php?redirect=/index.php&add=<?= $row['id'] ?>" class="btn btn-primary">
-  Add to Cart
-</a>
-            <?php else: ?>
-              <!-- Add directly to cart if logged in -->
-              <a href="public/cart.php?add=<?= $row['id'] ?>" 
-                 class="btn btn-success mt-auto">Add to Cart</a>
-            <?php endif; ?>
+                  <?php if (!isset($_SESSION['user_id'])): ?>
+                    <a href="/public/login.php?redirect=/index.php&add=<?= $row['id'] ?>" class="btn btn-primary">Add to Cart</a>
+                  <?php else: ?>
+                    <a href="public/cart.php?add=<?= $row['id'] ?>" class="btn btn-success mt-auto">Add to Cart</a>
+                  <?php endif; ?>
                 <?php endif; ?>
               </div>
             </div>
@@ -134,76 +188,8 @@ while ($row = $cat_query->fetch_assoc()) {
         <p class="text-muted text-center">No products found in this category.</p>
       <?php endif; ?>
     </div>
-  <?php endforeach; ?>
+  <?php endforeach;
+  } ?>
 </div>
-
-<!-- About Us Section -->
-<section id="about" class="bg-light py-5">
-  <div class="container text-center">
-    <h2 class="fw-bold mb-4">About Us</h2>
-    <p class="lead mb-4">
-      At Akuua Store, we bring you quality products at affordable prices. From fashion to electronics, we ensure customer satisfaction with every order.
-    </p>
-    <div class="row mt-4">
-      <div class="col-md-4">
-        <h5>🌍 Our Mission</h5>
-        <p>To make online shopping accessible and reliable for everyone in Malawi and beyond.</p>
-      </div>
-      <div class="col-md-4">
-        <h5>🤝 Our Promise</h5>
-        <p>Fast delivery, secure payments, and excellent customer service.</p>
-      </div>
-      <div class="col-md-4">
-        <h5>📦 What We Offer</h5>
-        <p>Fashion, electronics, home essentials, and more delivered to your doorstep.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- FAQ Section -->
-<section id="faq" class="py-5">
-  <div class="container">
-    <h2 class="text-center fw-bold mb-4">Frequently Asked Questions</h2>
-    <div class="accordion" id="faqAccordion">
-      <div class="accordion-item">
-        <h2 class="accordion-header">
-          <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
-            How do I place an order?
-          </button>
-        </h2>
-        <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
-          <div class="accordion-body">
-            Browse our products, add items to your cart, and proceed to checkout. It's that simple!
-          </div>
-        </div>
-      </div>
-      <div class="accordion-item">
-        <h2 class="accordion-header">
-          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
-            Do you deliver nationwide?
-          </button>
-        </h2>
-        <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-          <div class="accordion-body">
-            Yes, we deliver across Malawi. Delivery times may vary depending on your location.
-          </div>
-        </div>
-      </div>
-      <div class="accordion-item">
-        <h2 class="accordion-header">
-          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
-            What payment methods do you accept?
-          </button>
-        </h2>
-        <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-          <div class="accordion-body">
-            We accept Visa, MasterCard, mobile money, and cash on delivery (where available).
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
 
 <?php include "includes/footer.php"; ?>
