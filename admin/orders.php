@@ -17,19 +17,19 @@ if (isset($_POST['approve_order'])) {
     $order = $stmt->get_result()->fetch_assoc();
 
     if ($order) {
-        $update = $conn->prepare("UPDATE orders SET status='Approved' WHERE id=?");
+        $update = $conn->prepare("UPDATE orders SET `status`='Approved' WHERE id=?");
         $update->bind_param("i", $id);
 
-        if ($update->execute()) {
+        if ($update->execute() && $update->affected_rows > 0) {
             $message = "Dear {$order['customer_name']},<br><br>
             Your order (ID: $id) with a total of MWK " . number_format($order['total'], 2) . " has been <b>approved</b>.<br><br>
             Delivery Address: {$order['customer_address']}<br><br>
             Thank you for shopping with us.<br><br>- Akuua Store Team";
 
             sendMail($order['customer_email'], "Order #$id Approved - Akuua Store", $message);
-            $_SESSION['flash'] = "Order #$id approved successfully.";
+            $_SESSION['flash'] = "✅ Order #$id approved successfully.";
         } else {
-            $_SESSION['flash'] = "❌ Failed to approve order #$id. DB error: " . $conn->error;
+            $_SESSION['flash'] = "❌ Failed to approve order #$id. DB error: " . $update->error;
         }
     }
 
@@ -47,24 +47,25 @@ if (isset($_POST['decline_order'])) {
     $order = $stmt->get_result()->fetch_assoc();
 
     if ($order) {
-        $update = $conn->prepare("UPDATE orders SET status='Declined' WHERE id=?");
+        $update = $conn->prepare("UPDATE orders SET `status`='Declined' WHERE id=?");
         $update->bind_param("i", $id);
 
-        if ($update->execute()) {
+        if ($update->execute() && $update->affected_rows > 0) {
             $message = "Dear {$order['customer_name']},<br><br>
             Unfortunately, your order (ID: $id) with a total of MWK " . number_format($order['total'], 2) . " has been <b>declined</b>.<br><br>
             Please contact support for more details.<br><br>- Akuua Store Team";
 
             sendMail($order['customer_email'], "Order #$id Declined - Akuua Store", $message);
-            $_SESSION['flash'] = "Order #$id declined successfully.";
+            $_SESSION['flash'] = "⚠️ Order #$id declined successfully.";
         } else {
-            $_SESSION['flash'] = "❌ Failed to decline order #$id. DB error: " . $conn->error;
+            $_SESSION['flash'] = "❌ Failed to decline order #$id. DB error: " . $update->error;
         }
     }
 
     header("Location: orders.php");
     exit;
 }
+
 
 // Delete rejected order
 if (isset($_POST['delete_order'])) {
