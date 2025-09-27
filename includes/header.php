@@ -68,7 +68,7 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : null;
         <!-- Login / User Menu -->
         <?php if (!$is_logged_in): ?>
           <li class="nav-item">
-            <a class="nav-link" href="../public/login.php?redirect=../index.php">
+            <a class="nav-link" href="../public/login.php?redirect=/index.php">
               <i class="fas fa-user me-1"></i> Log In
             </a>
           </li>
