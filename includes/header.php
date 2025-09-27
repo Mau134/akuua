@@ -69,7 +69,7 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : null;
         <?php if (!$is_logged_in): ?>
           <li class="nav-item">
             <!-- ✅ Redirects correctly to ROOT index.php after login -->
-            <a class="nav-link" href="/public/login.php?redirect=/index.php">
+            <a class="nav-link" href="/public/login.php?redirect=./index.php">
               <i class="fas fa-user me-1"></i> Log In
             </a>
           </li>
