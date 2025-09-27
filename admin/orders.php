@@ -247,15 +247,16 @@ $otherOrders    = $conn->query("SELECT * FROM orders WHERE status NOT IN ('Appro
             <td><?= htmlspecialchars($row['customer_name']) ?><br><small><?= htmlspecialchars($row['customer_email']) ?></small></td>
             <td>MWK<?= number_format($row['total'], 2) ?></td>
             <td><?= htmlspecialchars($row['payment_method']) ?></td>
-            <td>
-              <?php if (!empty($row['payment_proof'])): ?>
-                <a href="../uploads/<?= htmlspecialchars($row['payment_proof']) ?>" target="_blank">
-                  <img src="../uploads/<?= htmlspecialchars($row['payment_proof']) ?>" alt="Proof" style="max-width:100px; height:auto; border:1px solid #ccc;">
-                </a>
-              <?php else: ?>
-                <span class="text-muted">No proof</span>
-              <?php endif; ?>
-            </td>
+<td>
+  <?php if (!empty($row['payment_proof'])): ?>
+    <a href="/uploads/<?= htmlspecialchars($row['payment_proof']) ?>" target="_blank">
+      <img src="/uploads/<?= htmlspecialchars($row['payment_proof']) ?>" 
+           alt="Proof" style="max-width:100px; height:auto; border:1px solid #ccc;">
+    </a>
+  <?php else: ?>
+    <span class="text-muted">No proof</span>
+  <?php endif; ?>
+</td>
             <td><span class="badge bg-warning"><?= $row['status'] ?></span></td>
             <td>
               <form method="post" class="d-inline">

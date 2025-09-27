@@ -17,13 +17,18 @@ if (isset($_POST['place_order'])) {
     $name = $_POST['name'];
     $email = $_POST['email'];
     $payment_method = $_POST['payment_method'];
-    $delivery_address = $_POST['delivery_address']; // NEW
+    $delivery_address = $_POST['delivery_address'];
     $proof = "";
 
     // Upload proof if provided
     if (!empty($_FILES['proof']['name'])) {
         $proof = time() . "_" . basename($_FILES['proof']['name']);
-        move_uploaded_file($_FILES['proof']['tmp_name'], "uploads/$proof");
+        // Save proof into /public/uploads/
+        $uploadDir = __DIR__ . "/uploads/";
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+        move_uploaded_file($_FILES['proof']['tmp_name'], $uploadDir . $proof);
     }
 
     // Generate unique order number
@@ -55,12 +60,10 @@ if (isset($_POST['place_order'])) {
     background-size: cover;
     background-repeat: no-repeat;
     background-attachment: fixed;
-    background-color: #f8f9fa; /* fallback */
+    background-color: #f8f9fa;
     color: #333;
     z-index: 0;
   }
-
-  /* Overlay to dim the background */
   body::before {
     content: "";
     position: fixed;
@@ -68,14 +71,13 @@ if (isset($_POST['place_order'])) {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(255, 255, 255, 0.7); /* white transparent overlay */
+    background: rgba(255, 255, 255, 0.7);
     z-index: -1;
   }
 </style>
 <div class="container py-5">
   <h2 class="mb-4">Checkout</h2>
 
-  <!-- Payment Options Banner -->
   <section class="bg-light py-5 mb-5">
     <div class="container text-center">
       <h2 class="mb-4">We Accept</h2>
@@ -102,7 +104,6 @@ if (isset($_POST['place_order'])) {
   }
   </style>
 
-  <!-- Checkout Form -->
   <form method="post" enctype="multipart/form-data" class="card p-4 shadow-sm">
     <div class="mb-3">
       <label class="form-label">Full Name</label>
@@ -114,7 +115,6 @@ if (isset($_POST['place_order'])) {
       <input type="email" name="email" class="form-control" required>
     </div>
 
-    <!-- Delivery Address -->
     <div class="mb-3">
       <label class="form-label">Delivery Address</label>
       <textarea name="delivery_address" class="form-control" rows="3" required></textarea>
@@ -130,7 +130,6 @@ if (isset($_POST['place_order'])) {
       </select>
     </div>
 
-    <!-- Show merchant account dynamically -->
     <div id="account_details" class="alert alert-info" style="display:none;"></div>
 
     <div class="mb-3">
