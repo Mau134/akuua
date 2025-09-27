@@ -117,8 +117,9 @@ while ($row = $cat_query->fetch_assoc()) {
                 <?php else: ?>
             <?php if (!isset($_SESSION['user_id'])): ?>
               <!-- Force login if not logged in -->
-              <a href="public/login.php?redirect=../index.php&add=<?= $row['id'] ?>" 
-                 class="btn btn-primary mt-auto">Add to Cart</a>
+              <a href="/public/login.php?redirect=/index.php&add=<?= $row['id'] ?>" class="btn btn-primary">
+  Add to Cart
+</a>
             <?php else: ?>
               <!-- Add directly to cart if logged in -->
               <a href="public/cart.php?add=<?= $row['id'] ?>" 

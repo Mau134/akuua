@@ -21,21 +21,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $_SESSION["user_id"] = $user["id"];
         $_SESSION["username"] = $user["username"];
 
-        // Redirect target
-        $redirect = $_GET['redirect'] ?? '/index.php';
-        $add_id   = $_GET['add'] ?? null;
+// Redirect target
+$redirect = $_GET['redirect'] ?? '/index.php';  // always points to root index
+$add_id   = $_GET['add'] ?? null;
 
-        // If login came from Add-to-Cart, add the item
-        if ($add_id) {
-            if (!isset($_SESSION['cart'][$add_id])) {
-                $_SESSION['cart'][$add_id] = 1;
-            } else {
-                $_SESSION['cart'][$add_id]++;
-            }
-        }
+// If login came from Add-to-Cart, add the item
+if ($add_id) {
+    if (!isset($_SESSION['cart'][$add_id])) {
+        $_SESSION['cart'][$add_id] = 1;
+    } else {
+        $_SESSION['cart'][$add_id]++;
+    }
+}
 
-        header("Location: $redirect");
-        exit;
+// Ensure absolute redirect
+header("Location: " . $redirect);
+exit;
     } else {
         $error = "Invalid email or password!";
     }
