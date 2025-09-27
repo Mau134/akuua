@@ -55,17 +55,15 @@ while ($row = $cat_query->fetch_assoc()) {
   }
 
   .product-img {
-    height: 160px;
+    height: 180px;
     width: 100%;
     object-fit: cover;
-    border-radius: 12px;
+    border-radius: 10px;
   }
 
-  /* Verified Tick */
-  .verified-badge {
-    color: #0d6efd;
-    font-size: 1rem;
-    margin-left: 6px;
+  .rating {
+    color: #FFD700; /* gold stars */
+    font-size: 0.9rem;
   }
 </style>
 
@@ -110,6 +108,7 @@ while ($row = $cat_query->fetch_assoc()) {
 
   <?php
   if (!empty($searchTerm)) {
+    // Search results
     echo "<h3 class='text-center my-4'>Search Results for: " . htmlspecialchars($searchTerm) . "</h3>";
     $stmt = $conn->prepare("SELECT * FROM products WHERE name LIKE ? OR description LIKE ?");
     $likeTerm = "%" . $searchTerm . "%";
@@ -121,7 +120,7 @@ while ($row = $cat_query->fetch_assoc()) {
     if ($result->num_rows > 0) {
       while ($row = $result->fetch_assoc()) {
   ?>
-        <div class="col-6 col-md-4 col-lg-3">
+        <div class="col-6 col-sm-4 col-md-3 col-lg-2"> <!-- ✅ 6 per row on large screens -->
           <div class="card shadow-sm h-100">
             <?php if (!empty($row['image'])): ?>
               <img src="uploads/<?= htmlspecialchars($row['image']) ?>" class="card-img-top product-img" alt="<?= htmlspecialchars($row['name']) ?>">
@@ -130,19 +129,21 @@ while ($row = $cat_query->fetch_assoc()) {
             <?php endif; ?>
 
             <div class="card-body d-flex flex-column">
-              <h5 class="card-title">
-                <?= htmlspecialchars($row['name']) ?>
-                <span class="verified-badge">✔</span>
-              </h5>
-              <p class="card-text text-muted"><?= substr($row['description'], 0, 70) ?>...</p>
-              <p class="fw-bold mb-2 text-success">MWK <?= number_format($row['price'],2) ?></p>
+              <h6 class="card-title mb-1"><?= htmlspecialchars($row['name']) ?></h6>
+              <p class="fw-bold text-success mb-1">MWK <?= number_format($row['price'],2) ?></p>
+
+              <!-- ⭐ Star Ratings -->
+              <div class="rating mb-2">★ ★ ★ ★ ☆ <small class="text-muted">(120)</small></div>
+
+              <p class="card-text text-muted small mb-2"><?= substr($row['description'], 0, 40) ?>...</p>
+
               <?php if ($row['stock'] <= 0): ?>
                 <span class="badge bg-danger">Out of Stock</span>
               <?php else: ?>
                 <?php if (!isset($_SESSION['user_id'])): ?>
-                  <a href="/public/login.php?redirect=/index.php&add=<?= $row['id'] ?>" class="btn btn-primary">Add to Cart</a>
+                  <a href="/public/login.php?redirect=/index.php&add=<?= $row['id'] ?>" class="btn btn-primary btn-sm">Add to Cart</a>
                 <?php else: ?>
-                  <a href="public/cart.php?add=<?= $row['id'] ?>" class="btn btn-success mt-auto">Add to Cart</a>
+                  <a href="public/cart.php?add=<?= $row['id'] ?>" class="btn btn-success btn-sm mt-auto">Add to Cart</a>
                 <?php endif; ?>
               <?php endif; ?>
             </div>
@@ -155,6 +156,7 @@ while ($row = $cat_query->fetch_assoc()) {
     }
     echo '</div>';
   } else {
+    // Show by category
     foreach ($categories as $cat):
   ?>
     <h3 id="cat-<?= urlencode($cat) ?>" class="text-center my-4"><?= htmlspecialchars($cat) ?></h3>
@@ -167,7 +169,7 @@ while ($row = $cat_query->fetch_assoc()) {
       ?>
       <?php if ($result->num_rows > 0): ?>
         <?php while ($row = $result->fetch_assoc()): ?>
-          <div class="col-6 col-md-4 col-lg-3">
+          <div class="col-6 col-sm-4 col-md-3 col-lg-2">
             <div class="card shadow-sm h-100">
               <?php if (!empty($row['image'])): ?>
                 <img src="uploads/<?= htmlspecialchars($row['image']) ?>" class="card-img-top product-img" alt="<?= htmlspecialchars($row['name']) ?>">
@@ -176,19 +178,21 @@ while ($row = $cat_query->fetch_assoc()) {
               <?php endif; ?>
 
               <div class="card-body d-flex flex-column">
-                <h5 class="card-title">
-                  <?= htmlspecialchars($row['name']) ?>
-                  <span class="verified-badge">✔</span>
-                </h5>
-                <p class="card-text text-muted"><?= substr($row['description'], 0, 70) ?>...</p>
-                <p class="fw-bold mb-2 text-success">MWK <?= number_format($row['price'],2) ?></p>
+                <h6 class="card-title mb-1"><?= htmlspecialchars($row['name']) ?></h6>
+                <p class="fw-bold text-success mb-1">MWK <?= number_format($row['price'],2) ?></p>
+
+                <!-- ⭐ Star Ratings -->
+                <div class="rating mb-2">★ ★ ★ ★ ☆ <small class="text-muted">(89)</small></div>
+
+                <p class="card-text text-muted small mb-2"><?= substr($row['description'], 0, 40) ?>...</p>
+
                 <?php if ($row['stock'] <= 0): ?>
                   <span class="badge bg-danger">Out of Stock</span>
                 <?php else: ?>
                   <?php if (!isset($_SESSION['user_id'])): ?>
-                    <a href="/public/login.php?redirect=/index.php&add=<?= $row['id'] ?>" class="btn btn-primary">Add to Cart</a>
+                    <a href="/public/login.php?redirect=/index.php&add=<?= $row['id'] ?>" class="btn btn-primary btn-sm">Add to Cart</a>
                   <?php else: ?>
-                    <a href="public/cart.php?add=<?= $row['id'] ?>" class="btn btn-success mt-auto">Add to Cart</a>
+                    <a href="public/cart.php?add=<?= $row['id'] ?>" class="btn btn-success btn-sm mt-auto">Add to Cart</a>
                   <?php endif; ?>
                 <?php endif; ?>
               </div>
