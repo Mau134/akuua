@@ -143,7 +143,9 @@ while ($row = $cat_query->fetch_assoc()) {
                 <span class="badge bg-danger">Out of Stock</span>
               <?php else: ?>
                 <?php if (!isset($_SESSION['user_id'])): ?>
-                  <a href="/public/login.php?redirect=/index.php&add=<?= $row['id'] ?>" class="btn btn-primary btn-sm">Add to Cart</a>
+<a href="/public/login.php?redirect=/index.php&add=<?= $row['id'] ?>" class="btn btn-primary">
+  Add to Cart
+</a>
                 <?php else: ?>
                   <a href="public/cart.php?add=<?= $row['id'] ?>" class="btn btn-success btn-sm mt-auto">Add to Cart</a>
                 <?php endif; ?>
