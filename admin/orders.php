@@ -20,18 +20,17 @@ if (isset($_POST['approve_order'])) {
         $update = $conn->prepare("UPDATE orders SET `status`='Approved' WHERE id=?");
         $update->bind_param("i", $id);
 
-if ($update->execute()) {
-    $message = "Dear {$order['customer_name']},<br><br>
-    Your order (ID: $id) with a total of MWK " . number_format($order['total'], 2) . " has been <b>approved</b>.<br><br>
-    Delivery Address: {$order['customer_address']}<br><br>
-    Thank you for shopping with us.<br><br>- Akuua Store Team";
+        if ($update->execute()) {
+            $message = "Dear {$order['customer_name']},<br><br>
+            Your order (ID: $id) with a total of MWK " . number_format($order['total'], 2) . " has been <b>approved</b>.<br><br>
+            Delivery Address: {$order['customer_address']}<br><br>
+            Thank you for shopping with us.<br><br>- Akuua Store Team";
 
-    sendMail($order['customer_email'], "Order #$id Approved - Akuua Store", $message);
-    $_SESSION['flash'] = "✅ Order #$id approved successfully.";
-} else {
-    $_SESSION['flash'] = "❌ Failed to approve order #$id. DB error: " . $update->error;
-}
-
+            sendMail($order['customer_email'], "Order #$id Approved - Akuua Store", $message);
+            $_SESSION['flash'] = "✅ Order #$id approved successfully.";
+        } else {
+            $_SESSION['flash'] = "❌ Failed to approve order #$id. DB error: " . $update->error;
+        }
     }
 
     header("Location: orders.php");
@@ -51,7 +50,7 @@ if (isset($_POST['decline_order'])) {
         $update = $conn->prepare("UPDATE orders SET `status`='Declined' WHERE id=?");
         $update->bind_param("i", $id);
 
-        if ($update->execute() && $update->affected_rows > 0) {
+        if ($update->execute()) {
             $message = "Dear {$order['customer_name']},<br><br>
             Unfortunately, your order (ID: $id) with a total of MWK " . number_format($order['total'], 2) . " has been <b>declined</b>.<br><br>
             Please contact support for more details.<br><br>- Akuua Store Team";
@@ -66,7 +65,6 @@ if (isset($_POST['decline_order'])) {
     header("Location: orders.php");
     exit;
 }
-
 
 // Delete rejected order
 if (isset($_POST['delete_order'])) {
@@ -142,6 +140,7 @@ $otherOrders    = $conn->query("SELECT * FROM orders WHERE status NOT IN ('Appro
             <th>Customer</th>
             <th>Total</th>
             <th>Payment</th>
+            <th>Proof of Payment</th>
             <th>Delivery Address</th>
             <th>Status</th>
           </tr>
@@ -153,6 +152,15 @@ $otherOrders    = $conn->query("SELECT * FROM orders WHERE status NOT IN ('Appro
             <td><?= htmlspecialchars($row['customer_name']) ?><br><small><?= htmlspecialchars($row['customer_email']) ?></small></td>
             <td>MWK<?= number_format($row['total'], 2) ?></td>
             <td><?= htmlspecialchars($row['payment_method']) ?></td>
+            <td>
+              <?php if (!empty($row['payment_proof'])): ?>
+                <a href="../uploads/<?= htmlspecialchars($row['payment_proof']) ?>" target="_blank">
+                  <img src="../uploads/<?= htmlspecialchars($row['payment_proof']) ?>" alt="Proof" style="max-width:100px; height:auto; border:1px solid #ccc;">
+                </a>
+              <?php else: ?>
+                <span class="text-muted">No proof</span>
+              <?php endif; ?>
+            </td>
             <td><?= nl2br(htmlspecialchars($row['customer_address'])) ?></td>
             <td><span class="badge bg-success">Approved</span></td>
           </tr>
@@ -177,6 +185,7 @@ $otherOrders    = $conn->query("SELECT * FROM orders WHERE status NOT IN ('Appro
             <th>Customer</th>
             <th>Total</th>
             <th>Payment</th>
+            <th>Proof of Payment</th>
             <th>Status</th>
             <th>Actions</th>
           </tr>
@@ -188,6 +197,15 @@ $otherOrders    = $conn->query("SELECT * FROM orders WHERE status NOT IN ('Appro
             <td><?= htmlspecialchars($row['customer_name']) ?><br><small><?= htmlspecialchars($row['customer_email']) ?></small></td>
             <td>MWK<?= number_format($row['total'], 2) ?></td>
             <td><?= htmlspecialchars($row['payment_method']) ?></td>
+            <td>
+              <?php if (!empty($row['payment_proof'])): ?>
+                <a href="../uploads/<?= htmlspecialchars($row['payment_proof']) ?>" target="_blank">
+                  <img src="../uploads/<?= htmlspecialchars($row['payment_proof']) ?>" alt="Proof" style="max-width:100px; height:auto; border:1px solid #ccc;">
+                </a>
+              <?php else: ?>
+                <span class="text-muted">No proof</span>
+              <?php endif; ?>
+            </td>
             <td><span class="badge bg-danger">Declined</span></td>
             <td>
               <form method="post" class="d-inline">
@@ -217,6 +235,7 @@ $otherOrders    = $conn->query("SELECT * FROM orders WHERE status NOT IN ('Appro
             <th>Customer</th>
             <th>Total</th>
             <th>Payment</th>
+            <th>Proof of Payment</th>
             <th>Status</th>
             <th>Actions</th>
           </tr>
@@ -228,6 +247,15 @@ $otherOrders    = $conn->query("SELECT * FROM orders WHERE status NOT IN ('Appro
             <td><?= htmlspecialchars($row['customer_name']) ?><br><small><?= htmlspecialchars($row['customer_email']) ?></small></td>
             <td>MWK<?= number_format($row['total'], 2) ?></td>
             <td><?= htmlspecialchars($row['payment_method']) ?></td>
+            <td>
+              <?php if (!empty($row['payment_proof'])): ?>
+                <a href="../uploads/<?= htmlspecialchars($row['payment_proof']) ?>" target="_blank">
+                  <img src="../uploads/<?= htmlspecialchars($row['payment_proof']) ?>" alt="Proof" style="max-width:100px; height:auto; border:1px solid #ccc;">
+                </a>
+              <?php else: ?>
+                <span class="text-muted">No proof</span>
+              <?php endif; ?>
+            </td>
             <td><span class="badge bg-warning"><?= $row['status'] ?></span></td>
             <td>
               <form method="post" class="d-inline">
