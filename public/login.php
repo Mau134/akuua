@@ -22,7 +22,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $_SESSION["username"] = $user["username"];
 
         // Redirect target
-        $redirect = $_GET['redirect'] ?? '../index.php';
+        $redirect = $_GET['redirect'] ?? '/index.php';
         $add_id   = $_GET['add'] ?? null;
 
         // If login came from Add-to-Cart, add the item
