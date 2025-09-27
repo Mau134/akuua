@@ -20,17 +20,18 @@ if (isset($_POST['approve_order'])) {
         $update = $conn->prepare("UPDATE orders SET `status`='Approved' WHERE id=?");
         $update->bind_param("i", $id);
 
-        if ($update->execute() && $update->affected_rows > 0) {
-            $message = "Dear {$order['customer_name']},<br><br>
-            Your order (ID: $id) with a total of MWK " . number_format($order['total'], 2) . " has been <b>approved</b>.<br><br>
-            Delivery Address: {$order['customer_address']}<br><br>
-            Thank you for shopping with us.<br><br>- Akuua Store Team";
+if ($update->execute()) {
+    $message = "Dear {$order['customer_name']},<br><br>
+    Your order (ID: $id) with a total of MWK " . number_format($order['total'], 2) . " has been <b>approved</b>.<br><br>
+    Delivery Address: {$order['customer_address']}<br><br>
+    Thank you for shopping with us.<br><br>- Akuua Store Team";
 
-            sendMail($order['customer_email'], "Order #$id Approved - Akuua Store", $message);
-            $_SESSION['flash'] = "✅ Order #$id approved successfully.";
-        } else {
-            $_SESSION['flash'] = "❌ Failed to approve order #$id. DB error: " . $update->error;
-        }
+    sendMail($order['customer_email'], "Order #$id Approved - Akuua Store", $message);
+    $_SESSION['flash'] = "✅ Order #$id approved successfully.";
+} else {
+    $_SESSION['flash'] = "❌ Failed to approve order #$id. DB error: " . $update->error;
+}
+
     }
 
     header("Location: orders.php");
