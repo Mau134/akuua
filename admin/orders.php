@@ -1,27 +1,94 @@
 <?php
 session_start();
-require '../vendor/autoload.php'; // Composer autoload for PHPMailer
+require '../vendor/autoload.php'; // Composer autoload
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-require '../config/db.php'; // Adjust path if needed
+include '../config/db.php';
+include "./includes/header.php";
 
-// ---------- Helper: Flash ----------
-if (!isset($_SESSION['flash'])) $_SESSION['flash'] = null;
-function set_flash($msg) {
-    $_SESSION['flash'] = $msg;
+// Approve order
+if (isset($_POST['approve_order'])) {
+    $id = intval($_POST['id']);
+
+    $stmt = $conn->prepare("SELECT customer_name, customer_email, total, customer_address FROM orders WHERE id=?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $order = $stmt->get_result()->fetch_assoc();
+
+    if ($order) {
+        $update = $conn->prepare("UPDATE orders SET status='Approved' WHERE id=?");
+        $update->bind_param("i", $id);
+
+        if ($update->execute()) {
+            $message = "Dear {$order['customer_name']},<br><br>
+            Your order (ID: $id) with a total of MWK " . number_format($order['total'], 2) . " has been <b>approved</b>.<br><br>
+            Delivery Address: {$order['customer_address']}<br><br>
+            Thank you for shopping with us.<br><br>- Akuua Store Team";
+
+            sendMail($order['customer_email'], "Order #$id Approved - Akuua Store", $message);
+            $_SESSION['flash'] = "Order #$id approved successfully.";
+        } else {
+            $_SESSION['flash'] = "❌ Failed to approve order #$id. DB error: " . $conn->error;
+        }
+    }
+
+    header("Location: orders.php");
+    exit;
 }
 
-// ---------- Mail helper ----------
+// Decline order
+if (isset($_POST['decline_order'])) {
+    $id = intval($_POST['id']);
+
+    $stmt = $conn->prepare("SELECT customer_name, customer_email, total FROM orders WHERE id=?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $order = $stmt->get_result()->fetch_assoc();
+
+    if ($order) {
+        $update = $conn->prepare("UPDATE orders SET status='Declined' WHERE id=?");
+        $update->bind_param("i", $id);
+
+        if ($update->execute()) {
+            $message = "Dear {$order['customer_name']},<br><br>
+            Unfortunately, your order (ID: $id) with a total of MWK " . number_format($order['total'], 2) . " has been <b>declined</b>.<br><br>
+            Please contact support for more details.<br><br>- Akuua Store Team";
+
+            sendMail($order['customer_email'], "Order #$id Declined - Akuua Store", $message);
+            $_SESSION['flash'] = "Order #$id declined successfully.";
+        } else {
+            $_SESSION['flash'] = "❌ Failed to decline order #$id. DB error: " . $conn->error;
+        }
+    }
+
+    header("Location: orders.php");
+    exit;
+}
+
+// Delete rejected order
+if (isset($_POST['delete_order'])) {
+    $id = intval($_POST['id']);
+    $delete = $conn->prepare("DELETE FROM orders WHERE id=?");
+    $delete->bind_param("i", $id);
+    if ($delete->execute()) {
+        $_SESSION['flash'] = "Order #$id deleted successfully.";
+    } else {
+        $_SESSION['flash'] = "❌ Failed to delete order #$id. DB error: " . $conn->error;
+    }
+    header("Location: orders.php");
+    exit;
+}
+
+// Mail helper
 function sendMail($to, $subject, $body) {
     $mail = new PHPMailer(true);
     try {
         $mail->isSMTP();
         $mail->Host = 'smtp.gmail.com';
         $mail->SMTPAuth = true;
-        // <<< REPLACE THESE with your real SMTP credentials or use environment variables >>>
-        $mail->Username = 'molande.mau@gmail.com';
-        $mail->Password = 'uphx vfoc nzdz tmxc';
+        $mail->Username = 'molande.mau@gmail.com'; // your Gmail
+        $mail->Password = 'uphx vfoc nzdz tmxc';   // Gmail App password
         $mail->SMTPSecure = 'tls';
         $mail->Port = 587;
 
@@ -31,133 +98,21 @@ function sendMail($to, $subject, $body) {
         $mail->Subject = $subject;
         $mail->Body    = $body;
         $mail->send();
-        return true;
     } catch (Exception $e) {
-        // Log error server-side and return false (do not abort DB changes)
-        error_log("PHPMailer error: " . $mail->ErrorInfo);
-        return false;
+        echo "<div class='alert alert-danger'>Mailer Error: {$mail->ErrorInfo}</div>";
     }
 }
 
-// ---------- Process POST actions BEFORE any output ----------
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // sanitize id helper
-    $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
-
-    if (isset($_POST['approve_order']) && $id > 0) {
-        // Fetch order
-        $stmt = $conn->prepare("SELECT customer_name, customer_email, total, delivery_address FROM orders WHERE id = ?");
-        $stmt->bind_param("i", $id);
-        $stmt->execute();
-        $order = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
-
-        if ($order) {
-            // Update status using prepared statement
-            $update = $conn->prepare("UPDATE orders SET status = ? WHERE id = ?");
-            $newstatus = 'Approved';
-            $update->bind_param("si", $newstatus, $id);
-            $ok = $update->execute();
-            if ($ok && $update->affected_rows > 0) {
-                set_flash("Order #{$id} approved.");
-            } else {
-                // Include DB error for debugging
-                set_flash("Failed to approve order #{$id}. DB error: " . $conn->error);
-            }
-            $update->close();
-
-            // Send email (best-effort, don't fail entire operation on mail error)
-            $message = "Dear {$order['customer_name']},<br><br>"
-                     . "Your order (ID: $id) with a total of MWK " . number_format($order['total'], 2)
-                     . " has been <b>approved</b>.<br><br>Delivery Address: {$order['delivery_address']}<br><br>"
-                     . "Thank you for shopping with us.<br><br>- Akuua Store Team";
-
-            if (!sendMail($order['customer_email'], "Order #$id Approved - Akuua Store", $message)) {
-                // optional: append warning to flash
-                $_SESSION['flash'] .= " (Email failed to send.)";
-            }
-        } else {
-            set_flash("Order #{$id} not found.");
-        }
-
-        header("Location: orders.php");
-        exit;
-    }
-
-    if (isset($_POST['decline_order']) && $id > 0) {
-        $stmt = $conn->prepare("SELECT customer_name, customer_email, total FROM orders WHERE id = ?");
-        $stmt->bind_param("i", $id);
-        $stmt->execute();
-        $order = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
-
-        if ($order) {
-            $update = $conn->prepare("UPDATE orders SET status = ? WHERE id = ?");
-            $newstatus = 'Declined';
-            $update->bind_param("si", $newstatus, $id);
-            $ok = $update->execute();
-            if ($ok && $update->affected_rows > 0) {
-                set_flash("Order #{$id} declined.");
-            } else {
-                set_flash("Failed to decline order #{$id}. DB error: " . $conn->error);
-            }
-            $update->close();
-
-            $message = "Dear {$order['customer_name']},<br><br>"
-                     . "Unfortunately, your order (ID: $id) with a total of MWK " . number_format($order['total'], 2)
-                     . " has been <b>declined</b>.<br><br>Please contact support for more details.<br><br>- Akuua Store Team";
-
-            if (!sendMail($order['customer_email'], "Order #$id Declined - Akuua Store", $message)) {
-                $_SESSION['flash'] .= " (Email failed to send.)";
-            }
-        } else {
-            set_flash("Order #{$id} not found.");
-        }
-
-        header("Location: orders.php");
-        exit;
-    }
-
-    if (isset($_POST['delete_order']) && $id > 0) {
-        // Only allow deleting if status is Declined (extra safety)
-        $check = $conn->prepare("SELECT status FROM orders WHERE id = ?");
-        $check->bind_param("i", $id);
-        $check->execute();
-        $row = $check->get_result()->fetch_assoc();
-        $check->close();
-
-        if ($row && $row['status'] === 'Declined') {
-            $delete = $conn->prepare("DELETE FROM orders WHERE id = ?");
-            $delete->bind_param("i", $id);
-            $ok = $delete->execute();
-            if ($ok && $delete->affected_rows > 0) {
-                set_flash("Declined order #{$id} deleted.");
-            } else {
-                set_flash("Failed to delete order #{$id}. DB error: " . $conn->error);
-            }
-            $delete->close();
-        } else {
-            set_flash("Order not deleted. Only orders with status 'Declined' can be removed.");
-        }
-
-        header("Location: orders.php");
-        exit;
-    }
-}
-
-// ---------- Page rendering ----------
-include "./includes/header.php"; // include after processing so redirects work
-
-// Fetch grouped orders
-$approvedOrders = $conn->query("SELECT * FROM orders WHERE status = 'Approved' ORDER BY id DESC");
-$declinedOrders = $conn->query("SELECT * FROM orders WHERE status = 'Declined' ORDER BY id DESC");
+// Fetch orders grouped by status
+$approvedOrders = $conn->query("SELECT * FROM orders WHERE status='Approved' ORDER BY id DESC");
+$declinedOrders = $conn->query("SELECT * FROM orders WHERE status='Declined' ORDER BY id DESC");
 $otherOrders    = $conn->query("SELECT * FROM orders WHERE status NOT IN ('Approved','Declined') ORDER BY id DESC");
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8">
   <title>Admin - Orders</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
@@ -165,20 +120,19 @@ $otherOrders    = $conn->query("SELECT * FROM orders WHERE status NOT IN ('Appro
 <div class="container py-5">
   <h2 class="mb-4">Manage Orders</h2>
 
-  <!-- Flash -->
-  <?php if (!empty($_SESSION['flash'])): ?>
-    <div class="alert alert-info alert-dismissible fade show">
-      <?= htmlspecialchars($_SESSION['flash']); unset($_SESSION['flash']); ?>
-      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  <!-- Flash Messages -->
+  <?php if (isset($_SESSION['flash'])): ?>
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+      <?= $_SESSION['flash']; unset($_SESSION['flash']); ?>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
   <?php endif; ?>
 
-  <!-- Approved -->
+  <!-- Approved Orders -->
   <div class="card shadow-sm mb-4">
     <div class="card-header bg-success text-white">Approved Orders</div>
     <div class="card-body">
-      <?php if ($approvedOrders && $approvedOrders->num_rows > 0): ?>
-      <div class="table-responsive">
+      <?php if ($approvedOrders->num_rows > 0): ?>
       <table class="table table-hover align-middle">
         <thead>
           <tr>
@@ -197,25 +151,23 @@ $otherOrders    = $conn->query("SELECT * FROM orders WHERE status NOT IN ('Appro
             <td><?= htmlspecialchars($row['customer_name']) ?><br><small><?= htmlspecialchars($row['customer_email']) ?></small></td>
             <td>MWK<?= number_format($row['total'], 2) ?></td>
             <td><?= htmlspecialchars($row['payment_method']) ?></td>
-            <td><?= nl2br(htmlspecialchars($row['delivery_address'])) ?></td>
+            <td><?= nl2br(htmlspecialchars($row['customer_address'])) ?></td>
             <td><span class="badge bg-success">Approved</span></td>
           </tr>
         <?php endwhile; ?>
         </tbody>
       </table>
-      </div>
       <?php else: ?>
         <p class="text-muted">No approved orders yet.</p>
       <?php endif; ?>
     </div>
   </div>
 
-  <!-- Declined -->
+  <!-- Declined Orders -->
   <div class="card shadow-sm mb-4">
     <div class="card-header bg-danger text-white">Declined Orders</div>
     <div class="card-body">
-      <?php if ($declinedOrders && $declinedOrders->num_rows > 0): ?>
-      <div class="table-responsive">
+      <?php if ($declinedOrders->num_rows > 0): ?>
       <table class="table table-hover align-middle">
         <thead>
           <tr>
@@ -236,28 +188,26 @@ $otherOrders    = $conn->query("SELECT * FROM orders WHERE status NOT IN ('Appro
             <td><?= htmlspecialchars($row['payment_method']) ?></td>
             <td><span class="badge bg-danger">Declined</span></td>
             <td>
-              <form method="post" class="d-inline" onsubmit="return confirm('Delete this rejected order?');">
+              <form method="post" class="d-inline">
                 <input type="hidden" name="id" value="<?= $row['id'] ?>">
-                <button type="submit" name="delete_order" class="btn btn-sm btn-outline-danger">Delete</button>
+                <button type="submit" name="delete_order" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this rejected order?')">Delete</button>
               </form>
             </td>
           </tr>
         <?php endwhile; ?>
         </tbody>
       </table>
-      </div>
       <?php else: ?>
         <p class="text-muted">No declined orders yet.</p>
       <?php endif; ?>
     </div>
   </div>
 
-  <!-- Pending / Other -->
+  <!-- Pending Orders -->
   <div class="card shadow-sm mb-4">
     <div class="card-header bg-secondary text-white">Pending / In Progress Orders</div>
     <div class="card-body">
-      <?php if ($otherOrders && $otherOrders->num_rows > 0): ?>
-      <div class="table-responsive">
+      <?php if ($otherOrders->num_rows > 0): ?>
       <table class="table table-hover align-middle">
         <thead>
           <tr>
@@ -276,7 +226,7 @@ $otherOrders    = $conn->query("SELECT * FROM orders WHERE status NOT IN ('Appro
             <td><?= htmlspecialchars($row['customer_name']) ?><br><small><?= htmlspecialchars($row['customer_email']) ?></small></td>
             <td>MWK<?= number_format($row['total'], 2) ?></td>
             <td><?= htmlspecialchars($row['payment_method']) ?></td>
-            <td><span class="badge bg-warning"><?= htmlspecialchars($row['status']) ?></span></td>
+            <td><span class="badge bg-warning"><?= $row['status'] ?></span></td>
             <td>
               <form method="post" class="d-inline">
                 <input type="hidden" name="id" value="<?= $row['id'] ?>">
@@ -291,7 +241,6 @@ $otherOrders    = $conn->query("SELECT * FROM orders WHERE status NOT IN ('Appro
         <?php endwhile; ?>
         </tbody>
       </table>
-      </div>
       <?php else: ?>
         <p class="text-muted">No pending orders right now.</p>
       <?php endif; ?>
@@ -299,7 +248,6 @@ $otherOrders    = $conn->query("SELECT * FROM orders WHERE status NOT IN ('Appro
   </div>
 
 </div>
-
 <?php include "./includes/footer.php"; ?>
 </body>
 </html>
