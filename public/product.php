@@ -30,59 +30,51 @@ if (isset($_GET['add']) && !isset($_SESSION['user_id'])) {
 ?>
 <style>
   body {
-    position: relative;
     background: url("../assets/img/shop1.jpg") center center fixed;
     background-size: cover;
     background-repeat: no-repeat;
     background-attachment: fixed;
     background-color: #f8f9fa;
     color: #333;
-    z-index: 0;
-  }
-  body::before {
-    content: "";
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(255, 255, 255, 0.7);
-    z-index: -1;
   }
 
-.product-img {
-  max-height: 780px;
-  width: 100%;
-  object-fit: contain;
-  border-radius: 15px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.2);
-}
+  .product-img {
+    max-height: 780px;
+    width: 100%;
+    object-fit: contain;
+    border-radius: 15px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+  }
 
-/* Selection cards */
-.option-card {
-  display: inline-block;
-  padding: 10px 20px;
-  margin: 5px;
-  border: 2px solid #ccc;
-  border-radius: 8px;
-  cursor: pointer;
-  user-select: none;
-  transition: all 0.2s ease-in-out;
-}
-.option-card:hover {
-  border-color: #007bff;
-  background: #f0f8ff;
-}
-.option-card.selected {
-  border-color: #007bff;
-  background: #007bff;
-  color: white;
-  font-weight: bold;
-}
+  /* Option card styles */
+  .option-card {
+    display: inline-block;
+    padding: 10px 20px;
+    margin: 5px;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    user-select: none;
+  }
+  .option-card:hover {
+    border-color: #007bff;
+    background: #f0f8ff;
+  }
+  .option-card.selected {
+    border-color: #007bff;
+    background: #007bff;
+    color: #fff;
+    font-weight: bold;
+  }
 </style>
 
 <div class="container py-5">
   <div class="row">
     <div class="col-md-6">
-      <img src="../uploads/<?= htmlspecialchars($product['image']) ?>" class="img-fluid rounded shadow-sm" alt="<?= htmlspecialchars($product['name']) ?>">
+      <img src="../uploads/<?= htmlspecialchars($product['image']) ?>" 
+           class="img-fluid rounded shadow-sm" 
+           alt="<?= htmlspecialchars($product['name']) ?>">
     </div>
     <div class="col-md-6 product-details">
       <h2><?= htmlspecialchars($product['name']) ?></h2>
@@ -99,40 +91,32 @@ if (isset($_GET['add']) && !isset($_SESSION['user_id'])) {
             <button type="submit" class="btn btn-primary btn-lg">Add to Cart</button>
           </form>
         <?php else: ?>
-          <!-- Logged in: normal add to cart -->
-          <form action="cart.php" method="GET" class="mt-3">
+          <!-- Logged in: add to cart -->
+          <form id="cartForm" action="cart.php" method="GET" class="mt-3">
             <input type="hidden" name="add" value="<?= $product['id'] ?>">
+            <input type="hidden" name="size" id="selectedSize">
+            <input type="hidden" name="color" id="selectedColor">
 
             <!-- Size Selection -->
             <div class="mb-3">
-              <label class="form-label fw-bold">Select Size:</label>
-              <div class="d-flex flex-wrap gap-2">
-                <?php if (strtolower($product['category']) === 'shoes'): ?>
-                  <?php for ($i = 36; $i <= 45; $i++): ?>
-                    <label class="btn btn-outline-primary">
-                      <input type="radio" name="size" value="<?= $i ?>" required> <?= $i ?>
-                    </label>
-                  <?php endfor; ?>
-                <?php else: ?>
-                  <?php foreach (["Small","Medium","Large","XL"] as $size): ?>
-                    <label class="btn btn-outline-primary">
-                      <input type="radio" name="size" value="<?= $size ?>" required> <?= $size ?>
-                    </label>
-                  <?php endforeach; ?>
-                <?php endif; ?>
-              </div>
+              <label class="form-label fw-bold">Select Size:</label><br>
+              <?php if (strtolower($product['category']) === 'shoes'): ?>
+                <?php for ($i = 36; $i <= 45; $i++): ?>
+                  <div class="option-card size-option" data-value="<?= $i ?>"><?= $i ?></div>
+                <?php endfor; ?>
+              <?php else: ?>
+                <?php foreach (["Small","Medium","Large","XL"] as $size): ?>
+                  <div class="option-card size-option" data-value="<?= $size ?>"><?= $size ?></div>
+                <?php endforeach; ?>
+              <?php endif; ?>
             </div>
 
             <!-- Color Selection -->
             <div class="mb-3">
-              <label class="form-label fw-bold">Select Color:</label>
-              <div class="d-flex flex-wrap gap-2">
-                <?php foreach (["Black","White","Red","Blue","Green"] as $color): ?>
-                  <label class="btn btn-outline-dark">
-                    <input type="radio" name="color" value="<?= $color ?>" required> <?= $color ?>
-                  </label>
-                <?php endforeach; ?>
-              </div>
+              <label class="form-label fw-bold">Select Color:</label><br>
+              <?php foreach (["Black","White","Red","Blue","Green"] as $color): ?>
+                <div class="option-card color-option" data-value="<?= $color ?>"><?= $color ?></div>
+              <?php endforeach; ?>
             </div>
 
             <button type="submit" class="btn btn-primary btn-lg">Add to Cart</button>
@@ -146,7 +130,7 @@ if (isset($_GET['add']) && !isset($_SESSION['user_id'])) {
 </div>
 
 <script>
-// Size & color card selection
+// Handle size selection
 document.querySelectorAll('.size-option').forEach(card => {
   card.addEventListener('click', function() {
     document.querySelectorAll('.size-option').forEach(c => c.classList.remove('selected'));
@@ -155,6 +139,7 @@ document.querySelectorAll('.size-option').forEach(card => {
   });
 });
 
+// Handle color selection
 document.querySelectorAll('.color-option').forEach(card => {
   card.addEventListener('click', function() {
     document.querySelectorAll('.color-option').forEach(c => c.classList.remove('selected'));
@@ -163,8 +148,8 @@ document.querySelectorAll('.color-option').forEach(card => {
   });
 });
 
-// Ensure size & color selected before submit
-document.getElementById('cartForm').addEventListener('submit', function(e) {
+// Ensure size & color selected before submitting
+document.getElementById('cartForm')?.addEventListener('submit', function(e) {
   if (!document.getElementById('selectedSize').value || !document.getElementById('selectedColor').value) {
     e.preventDefault();
     alert("Please select a size and a color before adding to cart.");
