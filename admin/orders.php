@@ -156,15 +156,15 @@ $pendingOrders  = $conn->query("SELECT * FROM orders WHERE status NOT IN ('Appro
             <td><?= htmlspecialchars($row['customer_name']) ?><br><small><?= htmlspecialchars($row['customer_email']) ?></small></td>
             <td>MWK<?= number_format($row['total'], 2) ?></td>
             <td><?= htmlspecialchars($row['payment_method']) ?></td>
-            <td>
-              <?php if (!empty($row['payment_proof'])): ?>
-                <a href="../uploads/<?= htmlspecialchars($row['payment_proof']) ?>" target="_blank">
-                  <img src="../uploads/<?= htmlspecialchars($row['payment_proof']) ?>" style="max-width:80px; height:auto; border:1px solid #ccc;">
-                </a>
-              <?php else: ?>
-                <span class="text-muted">No proof</span>
-              <?php endif; ?>
-            </td>
+<td>
+  <?php if (!empty($row['payment_proof'])): ?>
+    <a href="/akuua/public/uploads/<?= htmlspecialchars($row['payment_proof']) ?>" target="_blank">
+      <img src="/akuua/public/uploads/<?= htmlspecialchars($row['payment_proof']) ?>" style="max-width:80px; height:auto; border:1px solid #ccc;">
+    </a>
+  <?php else: ?>
+    <span class="text-muted">No proof</span>
+  <?php endif; ?>
+</td>
             <td><?= nl2br(htmlspecialchars(!empty($row['delivery_address']) ? $row['delivery_address'] : $row['customer_address'])) ?></td>
             <td><?= $row['created_at'] ?></td>
             <td><span class="badge bg-success">Approved</span></td>
