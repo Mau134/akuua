@@ -58,12 +58,37 @@ if (!$product) {
     color: #007bff;
   }
 
-  .product-img {
-    height: 180px;
-    width: 100%;
-    object-fit: cover;
-    border-radius: 10px;
-  }
+.product-img {
+  max-height: 450px;   /* allow bigger image */
+  width: 100%;
+  object-fit: contain; /* keep image proportions */
+  border-radius: 15px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+}
+
+/* Product text styling */
+.product-details h2 {
+  font-size: 2rem;        /* bigger title */
+  font-weight: 700;
+  color: #222;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+}
+
+.product-details h4 {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #28a745;         /* green for price */
+}
+
+.product-details p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.product-details strong {
+  font-weight: 700;
+  color: #000;
+}
 
   .rating {
     color: #FFD700; /* gold stars */
@@ -101,12 +126,13 @@ if (!$product) {
     <div class="col-md-6">
       <img src="../uploads/<?= htmlspecialchars($product['image']) ?>" class="img-fluid rounded shadow-sm" alt="<?= htmlspecialchars($product['name']) ?>">
     </div>
-    <div class="col-md-6">
-      <h2><?= htmlspecialchars($product['name']) ?></h2>
-      <p class="text-muted">Category: <?= htmlspecialchars($product['category']) ?></p>
-      <h4 class="text-success">MWK <?= number_format($product['price'], 2) ?></h4>
-      <p><strong>Stock:</strong> <?= $product['stock'] > 0 ? $product['stock'] : "Out of Stock" ?></p>
-      <p><?= nl2br(htmlspecialchars($product['description'])) ?></p>
+<div class="col-md-6 product-details">
+  <h2><?= htmlspecialchars($product['name']) ?></h2>
+  <p class="text-muted fs-5">Category: <?= htmlspecialchars($product['category']) ?></p>
+  <h4>MWK <?= number_format($product['price'], 2) ?></h4>
+  <p><strong>Stock:</strong> <?= $product['stock'] > 0 ? $product['stock'] : "Out of Stock" ?></p>
+  <p><?= nl2br(htmlspecialchars($product['description'])) ?></p>
+
       
       <?php if ($product['stock'] > 0): ?>
   <form action="cart.php" method="GET" class="mt-3">
