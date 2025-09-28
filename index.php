@@ -64,7 +64,20 @@ while ($row = $cat_query->fetch_assoc()) {
   .rating {
     color: #FFD700; /* gold stars */
     font-size: 0.9rem;
+
   }
+  #backToTop {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  display: none;
+  width: 45px;
+  height: 45px;
+  text-align: center;
+  line-height: 30px;
+  font-size: 20px;
+  z-index: 1000;
+}
 </style>
 
 <!-- Hero Section -->
@@ -85,6 +98,7 @@ while ($row = $cat_query->fetch_assoc()) {
     <span class="navbar-toggler-icon"></span>
   </button>
 </div>
+<a href="#" id="backToTop" class="btn btn-primary rounded-circle">
 
 <!-- Category Bar -->
 <div class="category-bar">
@@ -177,8 +191,10 @@ while ($row = $cat_query->fetch_assoc()) {
               <?php if (!empty($row['image'])): ?>
                 <img src="uploads/<?= htmlspecialchars($row['image']) ?>" class="card-img-top product-img" alt="<?= htmlspecialchars($row['name']) ?>">
               <?php else: ?>
-                <img src="assets/no-image.png" class="card-img-top product-img" alt="No image">
-              <?php endif; ?>
+    <a href="product.php?id=<?= $row['id'] ?>">
+      <img src="uploads/<?= htmlspecialchars($row['image']) ?>" class="card-img-top" alt="<?= htmlspecialchars($row['name']) ?>">
+    </a>              
+    <?php endif; ?>
 
               <div class="card-body d-flex flex-column">
                 <h6 class="card-title mb-1"><?= htmlspecialchars($row['name']) ?></h6>
@@ -212,5 +228,22 @@ while ($row = $cat_query->fetch_assoc()) {
   <?php endforeach;
   } ?>
 </div>
+<script>
+// Show button when scrolling down
+window.onscroll = function() {
+    let btn = document.getElementById("backToTop");
+    if (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) {
+        btn.style.display = "block";
+    } else {
+        btn.style.display = "none";
+    }
+};
+
+// Smooth scroll to top
+document.getElementById("backToTop").addEventListener("click", function(e) {
+    e.preventDefault();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+</script>
 
 <?php include "includes/footer.php"; ?>
