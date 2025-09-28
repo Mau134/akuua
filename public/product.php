@@ -99,7 +99,7 @@ if (!$product) {
 <div class="container py-5">
   <div class="row">
     <div class="col-md-6">
-      <img src="uploads/<?= htmlspecialchars($product['image']) ?>" class="img-fluid rounded shadow-sm" alt="<?= htmlspecialchars($product['name']) ?>">
+      <img src="../uploads/<?= htmlspecialchars($product['image']) ?>" class="img-fluid rounded shadow-sm" alt="<?= htmlspecialchars($product['name']) ?>">
     </div>
     <div class="col-md-6">
       <h2><?= htmlspecialchars($product['name']) ?></h2>
@@ -109,10 +109,45 @@ if (!$product) {
       <p><?= nl2br(htmlspecialchars($product['description'])) ?></p>
       
       <?php if ($product['stock'] > 0): ?>
-        <a href="cart.php?add=<?= $product['id'] ?>" class="btn btn-primary btn-lg">Add to Cart</a>
-      <?php else: ?>
-        <button class="btn btn-secondary btn-lg" disabled>Out of Stock</button>
-      <?php endif; ?>
+  <form action="cart.php" method="GET" class="mt-3">
+    <input type="hidden" name="add" value="<?= $product['id'] ?>">
+
+<!-- Size Selection -->
+<div class="mb-3">
+  <label for="size" class="form-label fw-bold">Select Size:</label>
+  <select name="size" id="size" class="form-select" required>
+    <option value="">-- Choose Size --</option>
+    <?php if (strtolower($product['category']) === 'shoes'): ?>
+      <?php for ($i = 36; $i <= 45; $i++): ?>
+        <option value="<?= $i ?>"><?= $i ?></option>
+      <?php endfor; ?>
+    <?php else: ?>
+      <option value="Small">Small</option>
+      <option value="Medium">Medium</option>
+      <option value="Large">Large</option>
+      <option value="XL">XL</option>
+    <?php endif; ?>
+  </select>
+</div>
+    <!-- Color Selection -->
+    <div class="mb-3">
+      <label for="color" class="form-label fw-bold">Select Color:</label>
+      <select name="color" id="color" class="form-select" required>
+        <option value="">-- Choose Color --</option>
+        <option value="Black">Black</option>
+        <option value="White">White</option>
+        <option value="Red">Red</option>
+        <option value="Blue">Blue</option>
+        <option value="Green">Green</option>
+      </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-lg">Add to Cart</button>
+  </form>
+<?php else: ?>
+  <button class="btn btn-secondary btn-lg" disabled>Out of Stock</button>
+<?php endif; ?>
+
     </div>
   </div>
 </div>
