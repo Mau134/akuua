@@ -1,14 +1,13 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
 require_once "../config/db.php";
 include "../includes/header.php";
-
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-session_start();
-
 
 $id = intval($_GET['id']);
 $stmt = $conn->prepare("SELECT * FROM products WHERE id=? LIMIT 1");
@@ -18,14 +17,14 @@ $product = $stmt->get_result()->fetch_assoc();
 
 if (!$product) {
     echo "<div class='alert alert-danger text-center'>Product not found.</div>";
-    include "includes/footer.php";
+    include "../includes/footer.php";
     exit;
 }
 ?>
 <style>
   body {
     position: relative;
-    background: url("assets/img/shop1.jpg") center center fixed;
+    background: url("../assets/img/shop1.jpg") center center fixed;
     background-size: cover;
     background-repeat: no-repeat;
     background-attachment: fixed;
