@@ -1,5 +1,7 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 require_once "../config/db.php";
 include "../includes/header.php";
 
@@ -20,6 +22,80 @@ if (!$product) {
     exit;
 }
 ?>
+<style>
+  body {
+    position: relative;
+    background: url("assets/img/shop1.jpg") center center fixed;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-color: #f8f9fa;
+    color: #333;
+    z-index: 0;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(255, 255, 255, 0.7);
+    z-index: -1;
+  }
+
+  /* Category bar */
+  .category-bar {
+    background: #fff;
+    border-bottom: 2px solid #ddd;
+    padding: 0.7rem 0;
+    text-align: center;
+  }
+  .category-bar a {
+    margin: 0 12px;
+    text-decoration: none;
+    font-weight: 500;
+    color: #333;
+  }
+  .category-bar a:hover {
+    color: #007bff;
+  }
+
+  .product-img {
+    height: 180px;
+    width: 100%;
+    object-fit: cover;
+    border-radius: 10px;
+  }
+
+  .rating {
+    color: #FFD700; /* gold stars */
+    font-size: 0.9rem;
+  }
+
+#backToTop {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  display: none;
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #007bff, #00d4ff);
+  color: white;
+  font-size: 28px;
+  line-height: 55px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+#backToTop:hover {
+  background: linear-gradient(135deg, #0056b3, #0099cc);
+  transform: translateY(-4px) scale(1.05);
+}
+
+
+</style>
 
 <div class="container py-5">
   <div class="row">
@@ -41,5 +117,21 @@ if (!$product) {
     </div>
   </div>
 </div>
+<script>
+// Show button when scrolling down
+window.onscroll = function() {
+    let btn = document.getElementById("backToTop");
+    if (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) {
+        btn.style.display = "block";
+    } else {
+        btn.style.display = "none";
+    }
+};
 
+// Smooth scroll to top
+document.getElementById("backToTop").addEventListener("click", function(e) {
+    e.preventDefault();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+</script>
 <?php include "../includes/footer.php"; ?>
