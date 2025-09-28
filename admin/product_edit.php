@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt = $conn->prepare("UPDATE products 
         SET name=?, description=?, price=?, stock=?, category=? 
         WHERE id=?");
-    $stmt->bind_param("ssdi si", $name, $desc, $price, $stock, $category, $id);
+    $stmt->bind_param("ssdssi", $name, $desc, $price, $stock, $category, $id);
     $stmt->execute();
 
     header("Location: products.php");
