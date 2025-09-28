@@ -59,7 +59,7 @@ if (!$product) {
   }
 
 .product-img {
-  max-height: 450px;   /* allow bigger image */
+  max-height: 780px;   /* allow bigger image */
   width: 100%;
   object-fit: contain; /* keep image proportions */
   border-radius: 15px;
