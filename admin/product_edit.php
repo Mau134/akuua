@@ -23,24 +23,18 @@ if (!$product) {
     die("❌ Product not found.");
 }
 
-// ✅ Fetch categories
-$categories = $conn->query("SELECT id, name FROM categories ORDER BY name ASC");
-if (!$categories) {
-    die("❌ Categories query failed: " . $conn->error);
-}
-
 // ✅ Update product
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = $_POST['name'];
     $desc = $_POST['description'];
     $price = $_POST['price'];
     $stock = $_POST['stock'];
-    $category_id = $_POST['category_id'];
+    $category = $_POST['category']; // ✅ comes directly from form
 
     $stmt = $conn->prepare("UPDATE products 
         SET name=?, description=?, price=?, stock=?, category=? 
         WHERE id=?");
-    $stmt->bind_param("ssdiii", $name, $desc, $price, $stock, $category_id, $id);
+    $stmt->bind_param("ssdi si", $name, $desc, $price, $stock, $category, $id);
     $stmt->execute();
 
     header("Location: products.php");
@@ -76,15 +70,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   <div class="mb-3">
     <label class="form-label">Category</label>
-    <select name="category_id" class="form-select" required>
-      <option value="">-- Select Category --</option>
-      <?php while ($cat = $categories->fetch_assoc()): ?>
-        <option value="<?= $cat['id'] ?>" 
-          <?= ($product['category'] == $cat['id']) ? 'selected' : '' ?>>
-          <?= htmlspecialchars($cat['name']) ?>
-        </option>
-      <?php endwhile; ?>
-    </select>
+    <input type="text" name="category" class="form-control" 
+           value="<?= htmlspecialchars($product['category']) ?>" required>
+    <!-- If you prefer a dropdown, replace this input with <select> -->
   </div>
 
   <button type="submit" class="btn btn-primary">Update</button>
