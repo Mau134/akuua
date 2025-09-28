@@ -1,7 +1,7 @@
 <?php
 session_start();
-require_once "config/db.php";
-include "includes/header1.php";
+require_once "../config/db.php";
+include "../includes/header.php";
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -42,4 +42,4 @@ if (!$product) {
   </div>
 </div>
 
-<?php include "includes/footer.php"; ?>
+<?php include "../includes/footer.php"; ?>
