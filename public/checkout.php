@@ -23,8 +23,9 @@ if (isset($_POST['place_order'])) {
     // Upload proof if provided
     if (!empty($_FILES['proof']['name'])) {
         $proof = time() . "_" . basename($_FILES['proof']['name']);
-        // Save proof into /public/uploads/
-        $uploadDir = __DIR__ . "/uploads/";
+
+        // Save proof into global /public/uploads/
+        $uploadDir = $_SERVER['DOCUMENT_ROOT'] . "/public/uploads/";
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0777, true);
         }
