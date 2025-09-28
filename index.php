@@ -88,8 +88,6 @@ while ($row = $cat_query->fetch_assoc()) {
   background: linear-gradient(135deg, #0056b3, #0099cc);
   transform: translateY(-4px) scale(1.05);
 }
-
-
 </style>
 
 <!-- Hero Section -->
@@ -115,6 +113,7 @@ while ($row = $cat_query->fetch_assoc()) {
 <a href="#" id="backToTop" class="btn btn-primary rounded-circle">
   <i class="bi bi-arrow-up-short"></i>
 </a>
+
 <!-- Category Bar -->
 <div class="category-bar">
   <?php foreach ($categories as $cat): ?>
@@ -138,9 +137,22 @@ while ($row = $cat_query->fetch_assoc()) {
   <?php
   if (!empty($searchTerm)) {
     echo "<h3 class='text-center my-4'>Search Results for: " . htmlspecialchars($searchTerm) . "</h3>";
-    $stmt = $conn->prepare("SELECT * FROM products WHERE name LIKE ? OR description LIKE ?");
+
+    // Improved search query (more accurate)
+    $stmt = $conn->prepare("
+      SELECT * FROM products 
+      WHERE name LIKE ? OR description LIKE ? OR category LIKE ?
+      ORDER BY 
+        CASE 
+          WHEN name = ? THEN 1
+          WHEN name LIKE ? THEN 2
+          WHEN description LIKE ? THEN 3
+          ELSE 4
+        END, name ASC
+    ");
+
     $likeTerm = "%" . $searchTerm . "%";
-    $stmt->bind_param("ss", $likeTerm, $likeTerm);
+    $stmt->bind_param("ssssss", $likeTerm, $likeTerm, $likeTerm, $searchTerm, $likeTerm, $likeTerm);
     $stmt->execute();
     $result = $stmt->get_result();
 
@@ -150,7 +162,7 @@ while ($row = $cat_query->fetch_assoc()) {
   ?>
         <div class="col-6 col-sm-4 col-md-3 col-lg-2">
           <div class="card shadow-sm h-100">
-          <a href="public/product.php?id=<?= $row['id'] ?>">
+            <a href="public/product.php?id=<?= $row['id'] ?>">
               <?php if (!empty($row['image'])): ?>
                 <img src="uploads/<?= htmlspecialchars($row['image']) ?>" class="card-img-top product-img" alt="<?= htmlspecialchars($row['name']) ?>">
               <?php else: ?>
@@ -160,7 +172,7 @@ while ($row = $cat_query->fetch_assoc()) {
 
             <div class="card-body d-flex flex-column">
               <h6 class="card-title mb-1">
-                <a href="product.php?id=<?= $row['id'] ?>" class="text-decoration-none text-dark">
+                <a href="public/product.php?id=<?= $row['id'] ?>" class="text-decoration-none text-dark">
                   <?= htmlspecialchars($row['name']) ?>
                 </a>
               </h6>
@@ -178,9 +190,7 @@ while ($row = $cat_query->fetch_assoc()) {
                 <span class="badge bg-danger">Out of Stock</span>
               <?php else: ?>
                 <?php if (!isset($_SESSION['user_id'])): ?>
-                  <a href="/public/login.php?redirect=/index.php&add=<?= $row['id'] ?>" class="btn btn-primary">
-                    Add to Cart
-                  </a>
+                  <a href="/public/login.php?redirect=/index.php&add=<?= $row['id'] ?>" class="btn btn-primary btn-sm">Add to Cart</a>
                 <?php else: ?>
                   <a href="public/cart.php?add=<?= $row['id'] ?>" class="btn btn-success btn-sm mt-auto">Add to Cart</a>
                 <?php endif; ?>
