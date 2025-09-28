@@ -3,27 +3,17 @@ session_start();
 require_once "config/db.php";
 include "includes/header.php";
 
-$searchTerm = isset($_GET['search']) ? trim($_GET['search']) : "";
+// Handle search
+$searchTerm = "";
+if (isset($_GET['search']) && !empty($_GET['search'])) {
+  $searchTerm = trim($_GET['search']);
+}
 
-if ($searchTerm !== "") {
-    // Improved search: product name, description, category
-    $stmt = $conn->prepare("
-        SELECT * FROM products 
-        WHERE name LIKE CONCAT('%', ?, '%') 
-           OR description LIKE CONCAT('%', ?, '%') 
-           OR category LIKE CONCAT('%', ?, '%') 
-        ORDER BY 
-            CASE 
-                WHEN name = ? THEN 1
-                WHEN name LIKE CONCAT(?,'%') THEN 2
-                ELSE 3
-            END, name ASC
-    ");
-    $stmt->bind_param("sssss", $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm);
-    $stmt->execute();
-    $products = $stmt->get_result();
-} else {
-    $products = $conn->query("SELECT * FROM products ORDER BY created_at DESC");
+// Fetch distinct categories
+$categories = [];
+$cat_query = $conn->query("SELECT DISTINCT category FROM products");
+while ($row = $cat_query->fetch_assoc()) {
+  $categories[] = $row['category'];
 }
 ?>
 
