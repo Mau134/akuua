@@ -139,7 +139,7 @@ $pendingOrders  = $conn->query("SELECT * FROM orders WHERE status NOT IN ('Appro
       <table class="table table-hover align-middle">
         <thead>
           <tr>
-            <th>#</th>
+            <th>Order Number</th>
             <th>Customer</th>
             <th>Total</th>
             <th>Payment</th>
@@ -152,7 +152,7 @@ $pendingOrders  = $conn->query("SELECT * FROM orders WHERE status NOT IN ('Appro
         <tbody>
         <?php while($row = $approvedOrders->fetch_assoc()): ?>
           <tr>
-            <td><?= $row['id'] ?></td>
+            <td><?= htmlspecialchars($row['order_number']) ?></td>
             <td><?= htmlspecialchars($row['customer_name']) ?><br><small><?= htmlspecialchars($row['customer_email']) ?></small></td>
             <td>MWK<?= number_format($row['total'], 2) ?></td>
             <td><?= htmlspecialchars($row['payment_method']) ?></td>
@@ -186,7 +186,7 @@ $pendingOrders  = $conn->query("SELECT * FROM orders WHERE status NOT IN ('Appro
       <table class="table table-hover align-middle">
         <thead>
           <tr>
-            <th>#</th>
+            <th>Order Number</th>
             <th>Customer</th>
             <th>Total</th>
             <th>Payment</th>
@@ -199,7 +199,7 @@ $pendingOrders  = $conn->query("SELECT * FROM orders WHERE status NOT IN ('Appro
         <tbody>
         <?php while($row = $declinedOrders->fetch_assoc()): ?>
           <tr>
-            <td><?= $row['id'] ?></td>
+            <td><?= htmlspecialchars($row['order_number']) ?></td>
             <td><?= htmlspecialchars($row['customer_name']) ?><br><small><?= htmlspecialchars($row['customer_email']) ?></small></td>
             <td>MWK<?= number_format($row['total'], 2) ?></td>
             <td><?= htmlspecialchars($row['payment_method']) ?></td>
@@ -238,7 +238,7 @@ $pendingOrders  = $conn->query("SELECT * FROM orders WHERE status NOT IN ('Appro
       <table class="table table-hover align-middle">
         <thead>
           <tr>
-            <th>#</th>
+            <th>Order Number</th>
             <th>Customer</th>
             <th>Total</th>
             <th>Payment</th>
@@ -251,7 +251,7 @@ $pendingOrders  = $conn->query("SELECT * FROM orders WHERE status NOT IN ('Appro
         <tbody>
         <?php while($row = $pendingOrders->fetch_assoc()): ?>
           <tr>
-            <td><?= $row['id'] ?></td>
+            <td><?= htmlspecialchars($row['order_number']) ?></td>
             <td><?= htmlspecialchars($row['customer_name']) ?><br><small><?= htmlspecialchars($row['customer_email']) ?></small></td>
             <td>MWK<?= number_format($row['total'], 2) ?></td>
             <td><?= htmlspecialchars($row['payment_method']) ?></td>
