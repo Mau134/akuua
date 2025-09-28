@@ -67,13 +67,55 @@ include __DIR__ . "/../includes/header.php";
     background: rgba(255, 255, 255, 0.7);
     z-index: -1;
   }
+
+  /* Desktop: normal table */
+  .cart-table {
+    display: table;
+    width: 100%;
+  }
+
+  /* Mobile: show cards instead of table */
+  @media (max-width: 768px) {
+    .cart-table {
+      display: none;
+    }
+
+    .cart-card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      margin-bottom: 15px;
+      padding: 15px;
+    }
+
+    .cart-card h5 {
+      font-size: 1rem;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .cart-card p {
+      margin: 2px 0;
+      font-size: 0.9rem;
+    }
+
+    .cart-card .subtotal {
+      font-weight: bold;
+      color: #28a745;
+    }
+
+    .cart-card .remove-btn {
+      margin-top: 10px;
+    }
+  }
 </style>
 
 <div class="container py-5">
   <h2 class="mb-4 text-center">Your Cart</h2>
   
   <?php if ($items): ?>
-    <div class="table-responsive">
+    <!-- Desktop Table View -->
+    <div class="table-responsive cart-table">
       <table class="table table-bordered align-middle text-center">
         <thead class="table-dark">
           <tr>
@@ -104,6 +146,23 @@ include __DIR__ . "/../includes/header.php";
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Mobile Card View -->
+    <div class="d-md-none">
+      <?php foreach ($items as $item): ?>
+        <div class="cart-card">
+          <h5><?= htmlspecialchars($item['name']) ?></h5>
+          <p>Price: MWK <?= number_format($item['price'],2) ?></p>
+          <p>Qty: <?= $item['qty'] ?></p>
+          <p class="subtotal">Subtotal: MWK <?= number_format($item['subtotal'],2) ?></p>
+          <a href="cart.php?remove=<?= $item['id'] ?>" class="btn btn-sm btn-outline-danger remove-btn">✕ Remove</a>
+        </div>
+      <?php endforeach; ?>
+      <div class="cart-card">
+        <h5>Total</h5>
+        <p class="subtotal fs-5">MWK <?= number_format($total,2) ?></p>
+      </div>
     </div>
 
     <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mt-4">
