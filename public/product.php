@@ -103,37 +103,40 @@ if (isset($_GET['add']) && !isset($_SESSION['user_id'])) {
           <form action="cart.php" method="GET" class="mt-3">
             <input type="hidden" name="add" value="<?= $product['id'] ?>">
 
-            <!-- Size Selection -->
-            <div class="mb-3">
-              <label class="form-label fw-bold">Select Size:</label>
-              <div class="d-flex flex-wrap gap-2">
-                <?php if (strtolower($product['category']) === 'shoes'): ?>
-                  <?php for ($i = 36; $i <= 45; $i++): ?>
-                    <label class="btn btn-outline-primary">
-                      <input type="radio" name="size" value="<?= $i ?>" required> <?= $i ?>
-                    </label>
-                  <?php endfor; ?>
-                <?php else: ?>
-                  <?php foreach (["Small","Medium","Large","XL"] as $size): ?>
-                    <label class="btn btn-outline-primary">
-                      <input type="radio" name="size" value="<?= $size ?>" required> <?= $size ?>
-                    </label>
-                  <?php endforeach; ?>
-                <?php endif; ?>
-              </div>
-            </div>
+<!-- Size Selection -->
+<div class="mb-3">
+  <label class="form-label fw-bold">Select Size:</label>
+  <div class="d-flex flex-wrap gap-2">
+    <?php if (strtolower($product['category']) === 'shoes'): ?>
+      <?php for ($i = 36; $i <= 45; $i++): ?>
+        <div class="option-card size-option" data-value="<?= $i ?>">
+          <?= $i ?>
+        </div>
+      <?php endfor; ?>
+    <?php else: ?>
+      <?php foreach (["Small","Medium","Large","XL"] as $size): ?>
+        <div class="option-card size-option" data-value="<?= $size ?>">
+          <?= $size ?>
+        </div>
+      <?php endforeach; ?>
+    <?php endif; ?>
+    <input type="hidden" name="size" id="selectedSize" required>
+  </div>
+</div>
 
-            <!-- Color Selection -->
-            <div class="mb-3">
-              <label class="form-label fw-bold">Select Color:</label>
-              <div class="d-flex flex-wrap gap-2">
-                <?php foreach (["Black","White","Red","Blue","Green"] as $color): ?>
-                  <label class="btn btn-outline-dark">
-                    <input type="radio" name="color" value="<?= $color ?>" required> <?= $color ?>
-                  </label>
-                <?php endforeach; ?>
-              </div>
-            </div>
+<!-- Color Selection -->
+<div class="mb-3">
+  <label class="form-label fw-bold">Select Color:</label>
+  <div class="d-flex flex-wrap gap-2">
+    <?php foreach (["Black","White","Red","Blue","Green"] as $color): ?>
+      <div class="option-card color-option" data-value="<?= $color ?>">
+        <?= $color ?>
+      </div>
+    <?php endforeach; ?>
+    <input type="hidden" name="color" id="selectedColor" required>
+  </div>
+</div>
+
 
             <button type="submit" class="btn btn-primary btn-lg">Add to Cart</button>
           </form>
@@ -146,7 +149,7 @@ if (isset($_GET['add']) && !isset($_SESSION['user_id'])) {
 </div>
 
 <script>
-// Size & color card selection
+// Size selection
 document.querySelectorAll('.size-option').forEach(card => {
   card.addEventListener('click', function() {
     document.querySelectorAll('.size-option').forEach(c => c.classList.remove('selected'));
@@ -155,6 +158,7 @@ document.querySelectorAll('.size-option').forEach(card => {
   });
 });
 
+// Color selection
 document.querySelectorAll('.color-option').forEach(card => {
   card.addEventListener('click', function() {
     document.querySelectorAll('.color-option').forEach(c => c.classList.remove('selected'));
@@ -163,8 +167,8 @@ document.querySelectorAll('.color-option').forEach(card => {
   });
 });
 
-// Ensure size & color selected before submit
-document.getElementById('cartForm').addEventListener('submit', function(e) {
+// Ensure both size & color selected before submit
+document.querySelector('form[action="cart.php"]').addEventListener('submit', function(e) {
   if (!document.getElementById('selectedSize').value || !document.getElementById('selectedColor').value) {
     e.preventDefault();
     alert("Please select a size and a color before adding to cart.");
