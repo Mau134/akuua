@@ -20,19 +20,23 @@ if (isset($_POST['place_order'])) {
     $delivery_address = $_POST['delivery_address'];
     $proof = "";
 
-   // Upload proof if provided
+// Upload proof if provided
 if (!empty($_FILES['proof']['name'])) {
     $proof = time() . "_" . basename($_FILES['proof']['name']);
 
-    // Correct uploads folder path inside /public/uploads/
-    $uploadDir = $_SERVER['DOCUMENT_ROOT'] . "/akuua/public/uploads/";
+    // Correct uploads folder path inside /public_html/uploads/
+    $uploadDir = $_SERVER['DOCUMENT_ROOT'] . "/uploads/";
 
     if (!is_dir($uploadDir)) {
         mkdir($uploadDir, 0777, true);
     }
 
     // Save file in uploads folder
-    move_uploaded_file($_FILES['proof']['tmp_name'], $uploadDir . $proof);
+    if (move_uploaded_file($_FILES['proof']['tmp_name'], $uploadDir . $proof)) {
+        // ✅ File successfully moved
+    } else {
+        die("❌ Failed to move uploaded file.");
+    }
 }
 
 
