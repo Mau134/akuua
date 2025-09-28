@@ -64,20 +64,20 @@ while ($row = $cat_query->fetch_assoc()) {
   .rating {
     color: #FFD700; /* gold stars */
     font-size: 0.9rem;
-
   }
+
   #backToTop {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  display: none;
-  width: 45px;
-  height: 45px;
-  text-align: center;
-  line-height: 30px;
-  font-size: 20px;
-  z-index: 1000;
-}
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: none;
+    width: 45px;
+    height: 45px;
+    text-align: center;
+    line-height: 40px;
+    font-size: 20px;
+    z-index: 1000;
+  }
 </style>
 
 <!-- Hero Section -->
@@ -98,7 +98,9 @@ while ($row = $cat_query->fetch_assoc()) {
     <span class="navbar-toggler-icon"></span>
   </button>
 </div>
-<a href="#" id="backToTop" class="btn btn-primary rounded-circle">
+
+<!-- Back to Top Button -->
+<a href="#" id="backToTop" class="btn btn-primary rounded-circle">↑</a>
 
 <!-- Category Bar -->
 <div class="category-bar">
@@ -135,14 +137,20 @@ while ($row = $cat_query->fetch_assoc()) {
   ?>
         <div class="col-6 col-sm-4 col-md-3 col-lg-2">
           <div class="card shadow-sm h-100">
-            <?php if (!empty($row['image'])): ?>
-              <img src="uploads/<?= htmlspecialchars($row['image']) ?>" class="card-img-top product-img" alt="<?= htmlspecialchars($row['name']) ?>">
-            <?php else: ?>
-              <img src="assets/no-image.png" class="card-img-top product-img" alt="No image">
-            <?php endif; ?>
+            <a href="product.php?id=<?= $row['id'] ?>">
+              <?php if (!empty($row['image'])): ?>
+                <img src="uploads/<?= htmlspecialchars($row['image']) ?>" class="card-img-top product-img" alt="<?= htmlspecialchars($row['name']) ?>">
+              <?php else: ?>
+                <img src="assets/no-image.png" class="card-img-top product-img" alt="No image">
+              <?php endif; ?>
+            </a>
 
             <div class="card-body d-flex flex-column">
-              <h6 class="card-title mb-1"><?= htmlspecialchars($row['name']) ?></h6>
+              <h6 class="card-title mb-1">
+                <a href="product.php?id=<?= $row['id'] ?>" class="text-decoration-none text-dark">
+                  <?= htmlspecialchars($row['name']) ?>
+                </a>
+              </h6>
               <p class="fw-bold text-success mb-1">MWK <?= number_format($row['price'],2) ?></p>
 
               <!-- ⭐ Star Ratings + Verified -->
@@ -157,9 +165,9 @@ while ($row = $cat_query->fetch_assoc()) {
                 <span class="badge bg-danger">Out of Stock</span>
               <?php else: ?>
                 <?php if (!isset($_SESSION['user_id'])): ?>
-<a href="/public/login.php?redirect=/index.php&add=<?= $row['id'] ?>" class="btn btn-primary">
-  Add to Cart
-</a>
+                  <a href="/public/login.php?redirect=/index.php&add=<?= $row['id'] ?>" class="btn btn-primary">
+                    Add to Cart
+                  </a>
                 <?php else: ?>
                   <a href="public/cart.php?add=<?= $row['id'] ?>" class="btn btn-success btn-sm mt-auto">Add to Cart</a>
                 <?php endif; ?>
@@ -188,16 +196,20 @@ while ($row = $cat_query->fetch_assoc()) {
         <?php while ($row = $result->fetch_assoc()): ?>
           <div class="col-6 col-sm-4 col-md-3 col-lg-2">
             <div class="card shadow-sm h-100">
-              <?php if (!empty($row['image'])): ?>
-                <img src="uploads/<?= htmlspecialchars($row['image']) ?>" class="card-img-top product-img" alt="<?= htmlspecialchars($row['name']) ?>">
-              <?php else: ?>
-    <a href="product.php?id=<?= $row['id'] ?>">
-      <img src="uploads/<?= htmlspecialchars($row['image']) ?>" class="card-img-top" alt="<?= htmlspecialchars($row['name']) ?>">
-    </a>              
-    <?php endif; ?>
+              <a href="product.php?id=<?= $row['id'] ?>">
+                <?php if (!empty($row['image'])): ?>
+                  <img src="uploads/<?= htmlspecialchars($row['image']) ?>" class="card-img-top product-img" alt="<?= htmlspecialchars($row['name']) ?>">
+                <?php else: ?>
+                  <img src="assets/no-image.png" class="card-img-top product-img" alt="No image">
+                <?php endif; ?>
+              </a>
 
               <div class="card-body d-flex flex-column">
-                <h6 class="card-title mb-1"><?= htmlspecialchars($row['name']) ?></h6>
+                <h6 class="card-title mb-1">
+                  <a href="product.php?id=<?= $row['id'] ?>" class="text-decoration-none text-dark">
+                    <?= htmlspecialchars($row['name']) ?>
+                  </a>
+                </h6>
                 <p class="fw-bold text-success mb-1">MWK <?= number_format($row['price'],2) ?></p>
 
                 <!-- ⭐ Star Ratings + Verified -->
@@ -228,6 +240,7 @@ while ($row = $cat_query->fetch_assoc()) {
   <?php endforeach;
   } ?>
 </div>
+
 <script>
 // Show button when scrolling down
 window.onscroll = function() {
