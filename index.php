@@ -66,18 +66,28 @@ while ($row = $cat_query->fetch_assoc()) {
     font-size: 0.9rem;
   }
 
-  #backToTop {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    display: none;
-    width: 45px;
-    height: 45px;
-    text-align: center;
-    line-height: 40px;
-    font-size: 20px;
-    z-index: 1000;
-  }
+#backToTop {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  display: none;
+  width: 50px;
+  height: 50px;
+  text-align: center;
+  line-height: 50px;
+  font-size: 28px;
+  border-radius: 50%;
+  background: #007bff;
+  color: white;
+  box-shadow: 0px 4px 8px rgba(0,0,0,0.3);
+  transition: background 0.3s, transform 0.3s;
+}
+
+#backToTop:hover {
+  background: #0056b3;
+  transform: translateY(-3px);
+}
+
 </style>
 
 <!-- Hero Section -->
@@ -100,8 +110,9 @@ while ($row = $cat_query->fetch_assoc()) {
 </div>
 
 <!-- Back to Top Button -->
-<a href="#" id="backToTop" class="btn btn-primary rounded-circle">↑</a>
-
+<a href="#" id="backToTop" class="btn btn-primary rounded-circle">
+  <i class="bi bi-arrow-up-short"></i>
+</a>
 <!-- Category Bar -->
 <div class="category-bar">
   <?php foreach ($categories as $cat): ?>
@@ -206,7 +217,7 @@ while ($row = $cat_query->fetch_assoc()) {
 
               <div class="card-body d-flex flex-column">
                 <h6 class="card-title mb-1">
-                  <a href="product.php?id=<?= $row['id'] ?>" class="text-decoration-none text-dark">
+                  <a href="public/product.php?id=<?= $row['id'] ?>" class="text-decoration-none text-dark">
                     <?= htmlspecialchars($row['name']) ?>
                   </a>
                 </h6>
