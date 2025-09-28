@@ -18,6 +18,8 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : null;
   <link href="/assets/css/style.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <link rel="icon" type="image/png" href="/assets/img/Logo.jpg">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
 </head>
 <body class="d-flex flex-column min-vh-100">
 

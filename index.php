@@ -68,25 +68,27 @@ while ($row = $cat_query->fetch_assoc()) {
 
 #backToTop {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
+  bottom: 25px;
+  right: 25px;
   display: none;
-  width: 50px;
-  height: 50px;
-  text-align: center;
-  line-height: 50px;
-  font-size: 28px;
+  width: 55px;
+  height: 55px;
   border-radius: 50%;
-  background: #007bff;
+  background: linear-gradient(135deg, #007bff, #00d4ff);
   color: white;
-  box-shadow: 0px 4px 8px rgba(0,0,0,0.3);
-  transition: background 0.3s, transform 0.3s;
+  font-size: 28px;
+  line-height: 55px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
 #backToTop:hover {
-  background: #0056b3;
-  transform: translateY(-3px);
+  background: linear-gradient(135deg, #0056b3, #0099cc);
+  transform: translateY(-4px) scale(1.05);
 }
+
 
 </style>
 
@@ -148,7 +150,7 @@ while ($row = $cat_query->fetch_assoc()) {
   ?>
         <div class="col-6 col-sm-4 col-md-3 col-lg-2">
           <div class="card shadow-sm h-100">
-            <a href="product.php?id=<?= $row['id'] ?>">
+          <a href="public/product.php?id=<?= $row['id'] ?>">
               <?php if (!empty($row['image'])): ?>
                 <img src="uploads/<?= htmlspecialchars($row['image']) ?>" class="card-img-top product-img" alt="<?= htmlspecialchars($row['name']) ?>">
               <?php else: ?>
