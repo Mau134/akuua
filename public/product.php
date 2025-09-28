@@ -3,6 +3,11 @@ session_start();
 require_once "config/db.php";
 include "includes/header1.php";
 
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+session_start();
+
+
 $id = intval($_GET['id']);
 $stmt = $conn->prepare("SELECT * FROM products WHERE id=? LIMIT 1");
 $stmt->bind_param("i", $id);
