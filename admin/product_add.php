@@ -7,28 +7,37 @@ if (isset($_POST['submit'])) {
     $description = $_POST['description'];
     $price = $_POST['price'];
     $stock = $_POST['stock'];
-    $category = $_POST['category']; 
-    $image_name = null;
+    $category = $_POST['category'];
 
-    // Handle file upload
-    if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
-        $image_name = time() . "_" . basename($_FILES['image']['name']);
-        $target_dir = "../uploads/";
-        $target_file = $target_dir . $image_name;
-
-        if (move_uploaded_file($_FILES['image']['tmp_name'], $target_file)) {
-            echo "<div class='alert alert-success'>File uploaded successfully!</div>";
-        } else {
-            echo "<div class='alert alert-danger'>Failed to upload file.</div>";
-        }
-    }
-
-    // Insert into DB
-    $stmt = $conn->prepare("INSERT INTO products (name, description, price, stock, category, image) VALUES (?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("sssdss", $name, $description, $price, $stock, $category, $image_name);
+    // Insert product first
+    $stmt = $conn->prepare("INSERT INTO products (name, description, price, stock, category) VALUES (?, ?, ?, ?, ?)");
+    $stmt->bind_param("ssdis", $name, $description, $price, $stock, $category);
 
     if ($stmt->execute()) {
-        echo "<div class='alert alert-success'>Product added successfully!</div>";
+        $product_id = $stmt->insert_id;
+
+        // Handle multiple file uploads (max 5)
+        if (!empty($_FILES['images']['name'][0])) {
+            $total_files = count($_FILES['images']['name']);
+            if ($total_files > 5) $total_files = 5; // limit to 5
+
+            for ($i = 0; $i < $total_files; $i++) {
+                if ($_FILES['images']['error'][$i] === 0) {
+                    $image_name = time() . "_" . basename($_FILES['images']['name'][$i]);
+                    $target_dir = "../uploads/";
+                    $target_file = $target_dir . $image_name;
+
+                    if (move_uploaded_file($_FILES['images']['tmp_name'][$i], $target_file)) {
+                        // Save image path in separate table
+                        $img_stmt = $conn->prepare("INSERT INTO product_images (product_id, image) VALUES (?, ?)");
+                        $img_stmt->bind_param("is", $product_id, $image_name);
+                        $img_stmt->execute();
+                    }
+                }
+            }
+        }
+
+        echo "<div class='alert alert-success'>Product added successfully with images!</div>";
     } else {
         echo "<div class='alert alert-danger'>Error: " . $stmt->error . "</div>";
     }
@@ -69,8 +78,8 @@ if (isset($_POST['submit'])) {
     </div>
 
     <div class="mb-3">
-      <label class="form-label">Upload Image</label>
-      <input type="file" name="image" class="form-control">
+      <label class="form-label">Upload Images (max 5)</label>
+      <input type="file" name="images[]" class="form-control" multiple>
     </div>
 
     <button type="submit" name="submit" class="btn btn-success">Add Product</button>

@@ -10,21 +10,32 @@ if (!isset($_SESSION['cart'])) {
 // Add item to cart
 if (isset($_GET['add'])) {
     $id = intval($_GET['add']);
-    if (!isset($_SESSION['cart'][$id])) {
-        $_SESSION['cart'][$id] = 1; // first time add
+    $size = isset($_GET['size']) ? trim($_GET['size']) : null;
+    $color = isset($_GET['color']) ? trim($_GET['color']) : null;
+
+    // Create unique cart key based on product + size + color
+    $cartKey = $id . "_" . $size . "_" . $color;
+
+    if (!isset($_SESSION['cart'][$cartKey])) {
+        $_SESSION['cart'][$cartKey] = [
+            'id' => $id,
+            'qty' => 1,
+            'size' => $size,
+            'color' => $color
+        ];
     } else {
-        $_SESSION['cart'][$id]++; // increase qty
+        $_SESSION['cart'][$cartKey]['qty']++;
     }
 
-    // Redirect back to shop instead of staying in cart
+    // Redirect back to shop
     header("Location: ../index.php?added=1");
     exit;
 }
 
 // Remove item
 if (isset($_GET['remove'])) {
-    $id = intval($_GET['remove']);
-    unset($_SESSION['cart'][$id]);
+    $key = $_GET['remove'];
+    unset($_SESSION['cart'][$key]);
     header("Location: cart.php");
     exit;
 }
@@ -32,14 +43,28 @@ if (isset($_GET['remove'])) {
 // Fetch cart items from DB
 $items = [];
 $total = 0;
+
 if (!empty($_SESSION['cart'])) {
-    $ids = implode(",", array_map("intval", array_keys($_SESSION['cart'])));
+    $ids = array_map(function ($item) {
+        return intval($item['id']);
+    }, $_SESSION['cart']);
+    $ids = implode(",", array_unique($ids));
+
     $result = $conn->query("SELECT * FROM products WHERE id IN ($ids)");
+    $products = [];
     while ($row = $result->fetch_assoc()) {
-        $row['qty'] = $_SESSION['cart'][$row['id']];
-        $row['subtotal'] = $row['qty'] * $row['price'];
-        $total += $row['subtotal'];
-        $items[] = $row;
+        $products[$row['id']] = $row;
+    }
+
+    foreach ($_SESSION['cart'] as $key => $cartItem) {
+        if (isset($products[$cartItem['id']])) {
+            $product = $products[$cartItem['id']];
+            $cartItem['name'] = $product['name'];
+            $cartItem['price'] = $product['price'];
+            $cartItem['subtotal'] = $cartItem['qty'] * $product['price'];
+            $total += $cartItem['subtotal'];
+            $items[$key] = $cartItem;
+        }
     }
 }
 
@@ -120,6 +145,8 @@ include __DIR__ . "/../includes/header.php";
         <thead class="table-dark">
           <tr>
             <th>Product</th>
+            <th>Size</th>
+            <th>Color</th>
             <th>Price</th>
             <th>Qty</th>
             <th>Subtotal</th>
@@ -127,19 +154,21 @@ include __DIR__ . "/../includes/header.php";
           </tr>
         </thead>
         <tbody>
-          <?php foreach ($items as $item): ?>
+          <?php foreach ($items as $key => $item): ?>
             <tr>
               <td class="fw-semibold"><?= htmlspecialchars($item['name']) ?></td>
+              <td><?= htmlspecialchars($item['size'] ?: '-') ?></td>
+              <td><?= htmlspecialchars($item['color'] ?: '-') ?></td>
               <td>MWK <?= number_format($item['price'],2) ?></td>
               <td><?= $item['qty'] ?></td>
               <td class="fw-semibold">MWK <?= number_format($item['subtotal'],2) ?></td>
               <td>
-                <a href="cart.php?remove=<?= $item['id'] ?>" class="btn btn-sm btn-outline-danger">✕ Remove</a>
+                <a href="cart.php?remove=<?= urlencode($key) ?>" class="btn btn-sm btn-outline-danger">✕ Remove</a>
               </td>
             </tr>
           <?php endforeach; ?>
           <tr>
-            <td colspan="3" class="text-end fw-bold">Total</td>
+            <td colspan="5" class="text-end fw-bold">Total</td>
             <td colspan="2" class="fw-bold text-success fs-5">
               MWK <?= number_format($total,2) ?>
             </td>
@@ -150,13 +179,15 @@ include __DIR__ . "/../includes/header.php";
 
     <!-- Mobile Card View -->
     <div class="d-md-none">
-      <?php foreach ($items as $item): ?>
+      <?php foreach ($items as $key => $item): ?>
         <div class="cart-card">
           <h5><?= htmlspecialchars($item['name']) ?></h5>
+          <p>Size: <?= htmlspecialchars($item['size'] ?: '-') ?></p>
+          <p>Color: <?= htmlspecialchars($item['color'] ?: '-') ?></p>
           <p>Price: MWK <?= number_format($item['price'],2) ?></p>
           <p>Qty: <?= $item['qty'] ?></p>
           <p class="subtotal">Subtotal: MWK <?= number_format($item['subtotal'],2) ?></p>
-          <a href="cart.php?remove=<?= $item['id'] ?>" class="btn btn-sm btn-outline-danger remove-btn">✕ Remove</a>
+          <a href="cart.php?remove=<?= urlencode($key) ?>" class="btn btn-sm btn-outline-danger remove-btn">✕ Remove</a>
         </div>
       <?php endforeach; ?>
       <div class="cart-card">

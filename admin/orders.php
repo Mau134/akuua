@@ -11,7 +11,7 @@ include "./includes/header.php";
 if (isset($_POST['approve_order'])) {
     $id = intval($_POST['id']);
 
-    $stmt = $conn->prepare("SELECT customer_name, customer_email, total, customer_address, delivery_address FROM orders WHERE id=?");
+    $stmt = $conn->prepare("SELECT customer_name, customer_email, customer_phone, total, customer_address, delivery_address FROM orders WHERE id=?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
     $order = $stmt->get_result()->fetch_assoc();
@@ -24,14 +24,14 @@ if (isset($_POST['approve_order'])) {
             $address = !empty($order['delivery_address']) ? $order['delivery_address'] : $order['customer_address'];
 
             $message = "Dear {$order['customer_name']},<br><br>
-            Your order (ID: $id) with a total of MWK " . number_format($order['total'], 2) . " has been <b>approved</b>.<br><br>
+            Your order ({$order['id']}) with a total of MWK " . number_format($order['total'], 2) . " has been <b>approved</b>.<br><br>
             Delivery Address: {$address}<br><br>
             Thank you for shopping with us.<br><br>- Akuua Store Team";
 
-            sendMail($order['customer_email'], "Order #$id Approved - Akuua Store", $message);
-            $_SESSION['flash'] = "✅ Order #$id approved successfully.";
+            sendMail($order['customer_email'], "Order #{$order['id']} Approved - Akuua Store", $message);
+            $_SESSION['flash'] = "✅ Order #{$order['id']} approved successfully.";
         } else {
-            $_SESSION['flash'] = "❌ Failed to approve order #$id. DB error: " . $update->error;
+            $_SESSION['flash'] = "❌ Failed to approve order #{$order['id']}. DB error: " . $update->error;
         }
     }
 
@@ -43,7 +43,7 @@ if (isset($_POST['approve_order'])) {
 if (isset($_POST['decline_order'])) {
     $id = intval($_POST['id']);
 
-    $stmt = $conn->prepare("SELECT customer_name, customer_email, total FROM orders WHERE id=?");
+    $stmt = $conn->prepare("SELECT customer_name, customer_email, customer_phone, total FROM orders WHERE id=?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
     $order = $stmt->get_result()->fetch_assoc();
@@ -54,13 +54,13 @@ if (isset($_POST['decline_order'])) {
 
         if ($update->execute()) {
             $message = "Dear {$order['customer_name']},<br><br>
-            Unfortunately, your order (ID: $id) with a total of MWK " . number_format($order['total'], 2) . " has been <b>declined</b>.<br><br>
+            Unfortunately, your order ({$order['id']}) with a total of MWK " . number_format($order['total'], 2) . " has been <b>declined</b>.<br><br>
             Please contact support for more details.<br><br>- Akuua Store Team";
 
-            sendMail($order['customer_email'], "Order #$id Declined - Akuua Store", $message);
-            $_SESSION['flash'] = "⚠️ Order #$id declined successfully.";
+            sendMail($order['customer_email'], "Order #{$order['id']} Declined - Akuua Store", $message);
+            $_SESSION['flash'] = "⚠️ Order #{$order['id']} declined successfully.";
         } else {
-            $_SESSION['flash'] = "❌ Failed to decline order #$id. DB error: " . $update->error;
+            $_SESSION['flash'] = "❌ Failed to decline order #{$order['id']}. DB error: " . $update->error;
         }
     }
 
@@ -153,7 +153,11 @@ $pendingOrders  = $conn->query("SELECT * FROM orders WHERE status NOT IN ('Appro
         <?php while($row = $approvedOrders->fetch_assoc()): ?>
           <tr>
             <td><?= htmlspecialchars($row['order_number']) ?></td>
-            <td><?= htmlspecialchars($row['customer_name']) ?><br><small><?= htmlspecialchars($row['customer_email']) ?></small></td>
+            <td>
+              <?= htmlspecialchars($row['customer_name']) ?><br>
+              <small><?= htmlspecialchars($row['customer_email']) ?></small><br>
+              <small>📞 <?= htmlspecialchars($row['customer_phone']) ?></small>
+            </td>
             <td>MWK<?= number_format($row['total'], 2) ?></td>
             <td><?= htmlspecialchars($row['payment_method']) ?></td>
 <td>
@@ -200,7 +204,11 @@ $pendingOrders  = $conn->query("SELECT * FROM orders WHERE status NOT IN ('Appro
         <?php while($row = $declinedOrders->fetch_assoc()): ?>
           <tr>
             <td><?= htmlspecialchars($row['order_number']) ?></td>
-            <td><?= htmlspecialchars($row['customer_name']) ?><br><small><?= htmlspecialchars($row['customer_email']) ?></small></td>
+            <td>
+              <?= htmlspecialchars($row['customer_name']) ?><br>
+              <small><?= htmlspecialchars($row['customer_email']) ?></small><br>
+              <small>📞 <?= htmlspecialchars($row['customer_phone']) ?></small>
+            </td>
             <td>MWK<?= number_format($row['total'], 2) ?></td>
             <td><?= htmlspecialchars($row['payment_method']) ?></td>
             <td>
@@ -252,7 +260,11 @@ $pendingOrders  = $conn->query("SELECT * FROM orders WHERE status NOT IN ('Appro
         <?php while($row = $pendingOrders->fetch_assoc()): ?>
           <tr>
             <td><?= htmlspecialchars($row['order_number']) ?></td>
-            <td><?= htmlspecialchars($row['customer_name']) ?><br><small><?= htmlspecialchars($row['customer_email']) ?></small></td>
+            <td>
+              <?= htmlspecialchars($row['customer_name']) ?><br>
+              <small><?= htmlspecialchars($row['customer_email']) ?></small><br>
+              <small>📞 <?= htmlspecialchars($row['customer_phone']) ?></small>
+            </td>
             <td>MWK<?= number_format($row['total'], 2) ?></td>
             <td><?= htmlspecialchars($row['payment_method']) ?></td>
             <td>
