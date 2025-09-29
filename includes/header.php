@@ -66,7 +66,7 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : null;
             <i class="fas fa-shopping-cart me-1"></i> Cart
             <?php if ($cart_count > 0): ?>
               <span class="badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle">
-  <?= $cart_count ?> TEST
+  <?= $cart_count ?> 
 </span>
 
             <?php endif; ?>
