@@ -3,7 +3,19 @@ session_start();
 require_once "../config/db.php";
 include "../includes/header1.php";
 
-// Calculate total
+// ✅ Auto-fill user info if logged in
+$user_email = "";
+$user_phone = "";
+if (isset($_SESSION['user_id'])) {
+    $uid = $_SESSION['user_id'];
+    $res = $conn->query("SELECT email, phone FROM users WHERE id=$uid");
+    if ($row = $res->fetch_assoc()) {
+        $user_email = $row['email'];
+        $user_phone = $row['phone'];
+    }
+}
+
+// ✅ Calculate total
 $total = 0;
 foreach ($_SESSION['cart'] ?? [] as $id => $qty) {
     $result = $conn->query("SELECT price FROM products WHERE id=$id");
@@ -12,46 +24,40 @@ foreach ($_SESSION['cart'] ?? [] as $id => $qty) {
     }
 }
 
-// Handle order submission
+// ✅ Handle order submission
 if (isset($_POST['place_order'])) {
     $name = $_POST['name'];
     $email = $_POST['email'];
+    $phone = $_POST['phone'];
     $payment_method = $_POST['payment_method'];
     $delivery_address = $_POST['delivery_address'];
     $proof = "";
 
-// Upload proof if provided
-if (!empty($_FILES['proof']['name'])) {
-    $proof = time() . "_" . basename($_FILES['proof']['name']);
-
-    // Correct uploads folder path inside /public_html/uploads/
-    $uploadDir = $_SERVER['DOCUMENT_ROOT'] . "/uploads/";
-
-    if (!is_dir($uploadDir)) {
-        mkdir($uploadDir, 0777, true);
+    // Upload proof if provided
+    if (!empty($_FILES['proof']['name'])) {
+        $proof = time() . "_" . basename($_FILES['proof']['name']);
+        $uploadDir = $_SERVER['DOCUMENT_ROOT'] . "/uploads/";
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+        if (!move_uploaded_file($_FILES['proof']['tmp_name'], $uploadDir . $proof)) {
+            die("❌ Failed to move uploaded file.");
+        }
     }
-
-    // Save file in uploads folder
-    if (move_uploaded_file($_FILES['proof']['tmp_name'], $uploadDir . $proof)) {
-        // ✅ File successfully moved
-    } else {
-        die("❌ Failed to move uploaded file.");
-    }
-}
-
 
     // Generate unique order number
     $order_number = 'ORD' . time();
 
-    // Insert into orders table
-    $stmt = $conn->prepare("INSERT INTO orders (order_number, customer_name, customer_email, total, payment_method, payment_proof, delivery_address, status) 
-                            VALUES (?, ?, ?, ?, ?, ?, ?, 'Order Received')");
-    $stmt->bind_param("sssdsss", $order_number, $name, $email, $total, $payment_method, $proof, $delivery_address);
+    // Insert into orders table (make sure you add phone column to orders if needed)
+    $stmt = $conn->prepare("INSERT INTO orders 
+        (order_number, customer_name, customer_email, customer_phone, total, payment_method, payment_proof, delivery_address, status) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Order Received')");
+    $stmt->bind_param("sssssdss", $order_number, $name, $email, $phone, $total, $payment_method, $proof, $delivery_address);
     $stmt->execute();
 
-    // Send confirmation email
+    // Confirmation email
     $subject = "Your Order Confirmation (#$order_number)";
-    $message = "Hello $name,\n\nThank you for your purchase! Your order number is $order_number. We’ll notify you once it is approved.\n\nDelivery Address: $delivery_address";
+    $message = "Hello $name,\n\nThank you for your purchase! Your order number is $order_number.\n\nDelivery Address: $delivery_address\nPhone: $phone";
     $headers = "From: no-reply@yourdomain.com";
 
     mail($email, $subject, $message, $headers);
@@ -64,29 +70,15 @@ if (!empty($_FILES['proof']['name'])) {
 ?>
 <style>
   body {
-    position: relative;
-    background: url("../assets/img/shop1.jpg") center center fixed;
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    background-color: #f8f9fa;
+    background: #fff;
     color: #333;
-    z-index: 0;
-  }
-  body::before {
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.7);
-    z-index: -1;
   }
 </style>
+
 <div class="container py-5">
   <h2 class="mb-4">Checkout</h2>
 
+  <!-- Payment Logos -->
   <section class="bg-light py-5 mb-5">
     <div class="container text-center">
       <h2 class="mb-4">We Accept</h2>
@@ -113,6 +105,7 @@ if (!empty($_FILES['proof']['name'])) {
   }
   </style>
 
+  <!-- Checkout Form -->
   <form method="post" enctype="multipart/form-data" class="card p-4 shadow-sm">
     <div class="mb-3">
       <label class="form-label">Full Name</label>
@@ -121,12 +114,19 @@ if (!empty($_FILES['proof']['name'])) {
 
     <div class="mb-3">
       <label class="form-label">Email Address</label>
-      <input type="email" name="email" class="form-control" required>
+      <input type="email" name="email" class="form-control" value="<?= htmlspecialchars($user_email) ?>" required>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Phone Number</label>
+      <input type="text" name="phone" class="form-control" 
+             value="<?= htmlspecialchars($user_phone) ?>" 
+             placeholder="e.g. 0991 234 567" required>
     </div>
 
     <div class="mb-3">
       <label class="form-label">Delivery Address</label>
-      <textarea name="delivery_address" class="form-control" rows="3" required></textarea>
+      <textarea name="delivery_address" class="form-control" rows="3" placeholder="e.g. Blantyre CTS / Lilongwe Speed Courier" required></textarea>
     </div>
 
     <div class="mb-3">
