@@ -3,13 +3,17 @@ session_start();
 require_once "../config/db.php";
 include "../includes/header1.php";
 
+// Show PHP errors for debugging
+error_reporting(E_ALL);
+ini_set("display_errors", 1);
+
 // ✅ Auto-fill user info if logged in
 $user_email = "";
 $user_phone = "";
 if (isset($_SESSION['user_id'])) {
     $uid = $_SESSION['user_id'];
     $res = $conn->query("SELECT email, phone FROM users WHERE id=$uid");
-    if ($row = $res->fetch_assoc()) {
+    if ($res && $row = $res->fetch_assoc()) {
         $user_email = $row['email'];
         $user_phone = $row['phone'];
     }
@@ -48,24 +52,36 @@ if (isset($_POST['place_order'])) {
     // Generate unique order number
     $order_number = 'ORD' . time();
 
-    // Insert into orders table (make sure you add phone column to orders if needed)
+    // Insert into orders table
     $stmt = $conn->prepare("INSERT INTO orders 
         (order_number, customer_name, customer_email, customer_phone, total, payment_method, payment_proof, delivery_address, status) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Order Received')");
-    $stmt->bind_param("sssssdss", $order_number, $name, $email, $phone, $total, $payment_method, $proof, $delivery_address);
-    $stmt->execute();
+    $stmt->bind_param("ssssdsss",
+        $order_number,
+        $name,
+        $email,
+        $phone,
+        $total,
+        $payment_method,
+        $proof,
+        $delivery_address
+    );
 
-    // Confirmation email
-    $subject = "Your Order Confirmation (#$order_number)";
-    $message = "Hello $name,\n\nThank you for your purchase! Your order number is $order_number.\n\nDelivery Address: $delivery_address\nPhone: $phone";
-    $headers = "From: no-reply@yourdomain.com";
+    if ($stmt->execute()) {
+        // Confirmation email
+        $subject = "Your Order Confirmation (#$order_number)";
+        $message = "Hello $name,\n\nThank you for your purchase! Your order number is $order_number.\n\nDelivery Address: $delivery_address\nPhone: $phone";
+        $headers = "From: no-reply@akuua.com";
 
-    mail($email, $subject, $message, $headers);
+        mail($email, $subject, $message, $headers);
 
-    // Clear cart
-    $_SESSION['cart'] = [];
+        // Clear cart
+        $_SESSION['cart'] = [];
 
-    echo "<div class='alert alert-success text-center'>Order placed successfully! Your order number is <b>$order_number</b>. We’ll contact you soon.</div>";
+        echo "<div class='alert alert-success text-center'>Order placed successfully! Your order number is <b>$order_number</b>. We’ll contact you soon.</div>";
+    } else {
+        echo "<div class='alert alert-danger'>Error: " . $stmt->error . "</div>";
+    }
 }
 ?>
 <style>
@@ -119,8 +135,8 @@ if (isset($_POST['place_order'])) {
 
     <div class="mb-3">
       <label class="form-label">Phone Number</label>
-      <input type="text" name="phone" class="form-control" 
-             value="<?= htmlspecialchars($user_phone) ?>" 
+      <input type="text" name="phone" class="form-control"
+             value="<?= htmlspecialchars($user_phone) ?>"
              placeholder="e.g. 0991 234 567" required>
     </div>
 
