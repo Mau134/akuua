@@ -9,6 +9,11 @@ require_once __DIR__ . "/../config/db.php"; // DB connection
 // ✅ Count cart items
 $cart_count = isset($_SESSION['cart']) ? array_sum($_SESSION['cart']) : 0;
 
+// ✅ Initialize cart count
+$cart_count = 0;
+if (isset($_SESSION['cart']) && !empty($_SESSION['cart'])) {
+    $cart_count = array_sum(array_column($_SESSION['cart'], 'quantity'));
+}
 // ✅ Login state
 $is_logged_in = isset($_SESSION['user_id']);
 $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : null;
@@ -27,14 +32,10 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : null;
 </head>
 <body class="d-flex flex-column min-vh-100">
 
-<!-- Navbar -->
+<!-- 🔹 Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container">
-    <!-- ✅ Always points to ROOT index.php -->
-    <a class="navbar-brand" href="/index.php">
-      <i class="fas fa-shopping-bag me-2"></i> Akuua
-    </a>
-
+    <a class="navbar-brand" href="index.php">MyShop</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
       <span class="navbar-toggler-icon"></span>
     </button>
@@ -42,53 +43,27 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : null;
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
         <li class="nav-item">
-          <a class="nav-link" href="/index.php#about">
-            <i class="fas fa-info-circle me-1"></i> About Us
-          </a>
+          <a class="nav-link" href="index.php">Home</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="/index.php#faq">
-            <i class="fas fa-question-circle me-1"></i> FAQ
-          </a>
-        </li>
-
-        <!-- Cart -->
-        <li class="nav-item">
-          <a class="nav-link position-relative" href="/public/cart.php">
-            <i class="fas fa-shopping-cart me-1"></i> Cart
+          <a class="nav-link" href="cart.php">
+            🛒 Cart 
             <?php if ($cart_count > 0): ?>
-              <span class="badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle">
-                <?= $cart_count ?>
-              </span>
+              <span class="badge bg-danger"><?= $cart_count ?></span>
             <?php endif; ?>
           </a>
         </li>
-
-        <!-- Order Tracking -->
-        <li class="nav-item">
-          <a class="nav-link" href="/public/order_status.php">
-            <i class="fas fa-truck me-1"></i> Track Order
-          </a>
-        </li>
-
-        <!-- Login / User Menu -->
-        <?php if (!$is_logged_in): ?>
+        <?php if (isset($_SESSION['user_id'])): ?>
           <li class="nav-item">
-            <a class="nav-link" href="/public/login.php">
-              <i class="fas fa-sign-in-alt me-1"></i> Login
-            </a>
+            <a class="nav-link" href="logout.php">Logout</a>
           </li>
         <?php else: ?>
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
-              <i class="fas fa-user-circle me-1"></i> <?= $username ?>
-            </a>
-            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-              <li><a class="dropdown-item" href="/public/logout.php">Logout</a></li>
-            </ul>
+          <li class="nav-item">
+            <a class="nav-link" href="login.php">Login</a>
           </li>
         <?php endif; ?>
       </ul>
     </div>
   </div>
 </nav>
+
