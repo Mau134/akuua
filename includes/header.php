@@ -1,10 +1,15 @@
 <?php
-require_once __DIR__ . "/../config/db.php"; // session + DB
+// ✅ Start session before anything else
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
-// Count cart items
+require_once __DIR__ . "/../config/db.php"; // DB connection
+
+// ✅ Count cart items
 $cart_count = isset($_SESSION['cart']) ? array_sum($_SESSION['cart']) : 0;
 
-// Login state
+// ✅ Login state
 $is_logged_in = isset($_SESSION['user_id']);
 $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : null;
 ?>
@@ -19,7 +24,6 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : null;
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <link rel="icon" type="image/png" href="/assets/img/Logo.jpg">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-
 </head>
 <body class="d-flex flex-column min-vh-100">
 
@@ -69,6 +73,11 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : null;
 
         <!-- Login / User Menu -->
         <?php if (!$is_logged_in): ?>
+          <li class="nav-item">
+            <a class="nav-link" href="/public/login.php">
+              <i class="fas fa-sign-in-alt me-1"></i> Login
+            </a>
+          </li>
         <?php else: ?>
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
@@ -83,14 +92,3 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : null;
     </div>
   </div>
 </nav>
-
-<main class="flex-grow-1">
-  <div class="container my-5">
-
-    <!-- ✅ Flash Message -->
-    <?php if (isset($_SESSION['success'])): ?>
-      <div class="alert alert-success text-center">
-        <?= htmlspecialchars($_SESSION['success']); ?>
-      </div>
-      <?php unset($_SESSION['success']); ?>
-    <?php endif; ?>
