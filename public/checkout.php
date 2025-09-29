@@ -3,7 +3,6 @@ session_start();
 require_once "../config/db.php";
 include "../includes/header1.php";
 
-// Show PHP errors for debugging
 error_reporting(E_ALL);
 ini_set("display_errors", 1);
 
@@ -11,7 +10,7 @@ ini_set("display_errors", 1);
 $user_email = "";
 $user_phone = "";
 if (isset($_SESSION['user_id'])) {
-    $uid = $_SESSION['user_id'];
+    $uid = intval($_SESSION['user_id']);
     $res = $conn->query("SELECT email, phone FROM users WHERE id=$uid");
     if ($res && $row = $res->fetch_assoc()) {
         $user_email = $row['email'];
@@ -21,8 +20,9 @@ if (isset($_SESSION['user_id'])) {
 
 // ✅ Calculate total
 $total = 0;
-foreach ($_SESSION['cart'] ?? [] as $id => $qty) {
-    $result = $conn->query("SELECT price FROM products WHERE id=$id");
+foreach ($_SESSION['cart'] ?? [] as $id => $item) {
+    $qty = $item['qty'];
+    $result = $conn->query("SELECT price FROM products WHERE id=" . intval($id));
     if ($row = $result->fetch_assoc()) {
         $total += $row['price'] * $qty;
     }
@@ -44,9 +44,7 @@ if (isset($_POST['place_order'])) {
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0777, true);
         }
-        if (!move_uploaded_file($_FILES['proof']['tmp_name'], $uploadDir . $proof)) {
-            die("❌ Failed to move uploaded file.");
-        }
+        move_uploaded_file($_FILES['proof']['tmp_name'], $uploadDir . $proof);
     }
 
     // Generate unique order number
@@ -68,12 +66,30 @@ if (isset($_POST['place_order'])) {
     );
 
     if ($stmt->execute()) {
-        // Confirmation email
+        $order_id = $stmt->insert_id;
+
+        // Insert cart items into order_items
+        foreach ($_SESSION['cart'] as $pid => $item) {
+            $qty = $item['qty'];
+
+            $res = $conn->query("SELECT price FROM products WHERE id=" . intval($pid));
+            if ($res && $row = $res->fetch_assoc()) {
+                $price = $row['price'];
+
+                $stmt2 = $conn->prepare("INSERT INTO order_items 
+                    (order_id, product_id, quantity, price) 
+                    VALUES (?, ?, ?, ?)");
+                $stmt2->bind_param("iiid", $order_id, $pid, $qty, $price);
+                $stmt2->execute();
+            }
+        }
+
+        // Send confirmation email
         $subject = "Your Order Confirmation (#$order_number)";
         $message = "Hello $name,\n\nThank you for your purchase! Your order number is $order_number.\n\nDelivery Address: $delivery_address\nPhone: $phone";
         $headers = "From: no-reply@akuua.com";
 
-        mail($email, $subject, $message, $headers);
+        @mail($email, $subject, $message, $headers);
 
         // Clear cart
         $_SESSION['cart'] = [];
@@ -85,9 +101,10 @@ if (isset($_POST['place_order'])) {
 }
 ?>
 <style>
-  body {
-    background: #fff;
-    color: #333;
+  body { background: #fff; color: #333; }
+  .payment-logo { height: 60px; max-width: 150px; object-fit: contain; }
+  @media (max-width: 576px) {
+      .payment-logo { height: 45px; margin-bottom: 10px; }
   }
 </style>
 
@@ -101,25 +118,11 @@ if (isset($_POST['place_order'])) {
       <div class="d-flex justify-content-center align-items-center gap-4 flex-wrap">
         <img src="../assets/img/tnm_logo.png" alt="Mpamba" class="payment-logo">
         <img src="../assets/img/airtel_logo.png" alt="Airtel Money" class="payment-logo">
-        <img src="../assets/img/nationalbank_logo.png" alt="Mastercard" class="payment-logo">
+        <img src="../assets/img/nationalbank_logo.png" alt="Bank" class="payment-logo">
       </div>
       <p class="mt-3 text-muted">Choose your preferred payment method at checkout</p>
     </div>
   </section>
-
-  <style>
-  .payment-logo {
-      height: 60px;
-      max-width: 150px;
-      object-fit: contain;
-  }
-  @media (max-width: 576px) {
-      .payment-logo {
-          height: 45px;
-          margin-bottom: 10px;
-      }
-  }
-  </style>
 
   <!-- Checkout Form -->
   <form method="post" enctype="multipart/form-data" class="card p-4 shadow-sm">
