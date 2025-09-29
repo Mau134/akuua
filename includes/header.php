@@ -6,17 +6,17 @@ if (session_status() === PHP_SESSION_NONE) {
 
 require_once __DIR__ . "/../config/db.php"; // DB connection
 
-// ✅ Count cart items (supports both cart shapes)
 $cart_count = 0;
 if (isset($_SESSION['cart']) && is_array($_SESSION['cart'])) {
     foreach ($_SESSION['cart'] as $item) {
         if (is_array($item) && isset($item['quantity'])) {
             $cart_count += (int)$item['quantity'];
-        } elseif (is_numeric($item)) {
-            $cart_count += (int)$item;
+        } else {
+            $cart_count++;
         }
     }
 }
+
 
 // ✅ Login state
 $is_logged_in = isset($_SESSION['user_id']);
@@ -66,8 +66,9 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : null;
             <i class="fas fa-shopping-cart me-1"></i> Cart
             <?php if ($cart_count > 0): ?>
               <span class="badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle">
-                <?= $cart_count ?>
-              </span>
+  <?= $cart_count ?> TEST
+</span>
+
             <?php endif; ?>
           </a>
         </li>
