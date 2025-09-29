@@ -6,8 +6,17 @@ if (session_status() === PHP_SESSION_NONE) {
 
 require_once __DIR__ . "/../config/db.php"; // DB connection
 
-// ✅ Count cart items
-$cart_count = isset($_SESSION['cart']) ? array_sum($_SESSION['cart']) : 0;
+// ✅ Count cart items (supports both cart shapes)
+$cart_count = 0;
+if (isset($_SESSION['cart']) && is_array($_SESSION['cart'])) {
+    foreach ($_SESSION['cart'] as $item) {
+        if (is_array($item) && isset($item['quantity'])) {
+            $cart_count += (int)$item['quantity'];
+        } elseif (is_numeric($item)) {
+            $cart_count += (int)$item;
+        }
+    }
+}
 
 // ✅ Login state
 $is_logged_in = isset($_SESSION['user_id']);
@@ -30,7 +39,6 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : null;
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container">
-    <!-- ✅ Always points to ROOT index.php -->
     <a class="navbar-brand" href="/index.php">
       <i class="fas fa-shopping-bag me-2"></i> Akuua
     </a>
