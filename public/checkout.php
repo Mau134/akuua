@@ -3,6 +3,7 @@ session_start();
 require_once "../config/db.php";
 include "../includes/header1.php";
 
+// Show PHP errors for debugging
 error_reporting(E_ALL);
 ini_set("display_errors", 1);
 
@@ -10,8 +11,8 @@ ini_set("display_errors", 1);
 $user_email = "";
 $user_phone = "";
 if (isset($_SESSION['user_id'])) {
-    $uid = intval($_SESSION['user_id']);
-    $res = $conn->query("SELECT email, phone FROM users WHERE id=$uid");
+    $uid = $_SESSION['user_id'];
+    $res = $conn->query("SELECT email, phone FROM users WHERE id=" . intval($uid));
     if ($res && $row = $res->fetch_assoc()) {
         $user_email = $row['email'];
         $user_phone = $row['phone'];
@@ -20,8 +21,7 @@ if (isset($_SESSION['user_id'])) {
 
 // ✅ Calculate total
 $total = 0;
-foreach ($_SESSION['cart'] ?? [] as $id => $item) {
-    $qty = $item['qty'];
+foreach ($_SESSION['cart'] ?? [] as $id => $qty) {
     $result = $conn->query("SELECT price FROM products WHERE id=" . intval($id));
     if ($row = $result->fetch_assoc()) {
         $total += $row['price'] * $qty;
@@ -44,7 +44,9 @@ if (isset($_POST['place_order'])) {
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0777, true);
         }
-        move_uploaded_file($_FILES['proof']['tmp_name'], $uploadDir . $proof);
+        if (!move_uploaded_file($_FILES['proof']['tmp_name'], $uploadDir . $proof)) {
+            die("❌ Failed to move uploaded file.");
+        }
     }
 
     // Generate unique order number
@@ -68,10 +70,8 @@ if (isset($_POST['place_order'])) {
     if ($stmt->execute()) {
         $order_id = $stmt->insert_id;
 
-        // Insert cart items into order_items
-        foreach ($_SESSION['cart'] as $pid => $item) {
-            $qty = $item['qty'];
-
+        // ✅ Insert items into order_items
+        foreach ($_SESSION['cart'] as $pid => $qty) {
             $res = $conn->query("SELECT price FROM products WHERE id=" . intval($pid));
             if ($res && $row = $res->fetch_assoc()) {
                 $price = $row['price'];
@@ -84,7 +84,7 @@ if (isset($_POST['place_order'])) {
             }
         }
 
-        // Send confirmation email
+        // ✅ Confirmation email
         $subject = "Your Order Confirmation (#$order_number)";
         $message = "Hello $name,\n\nThank you for your purchase! Your order number is $order_number.\n\nDelivery Address: $delivery_address\nPhone: $phone";
         $headers = "From: no-reply@akuua.com";
@@ -101,10 +101,9 @@ if (isset($_POST['place_order'])) {
 }
 ?>
 <style>
-  body { background: #fff; color: #333; }
-  .payment-logo { height: 60px; max-width: 150px; object-fit: contain; }
-  @media (max-width: 576px) {
-      .payment-logo { height: 45px; margin-bottom: 10px; }
+  body {
+    background: #fff;
+    color: #333;
   }
 </style>
 
@@ -118,11 +117,25 @@ if (isset($_POST['place_order'])) {
       <div class="d-flex justify-content-center align-items-center gap-4 flex-wrap">
         <img src="../assets/img/tnm_logo.png" alt="Mpamba" class="payment-logo">
         <img src="../assets/img/airtel_logo.png" alt="Airtel Money" class="payment-logo">
-        <img src="../assets/img/nationalbank_logo.png" alt="Bank" class="payment-logo">
+        <img src="../assets/img/nationalbank_logo.png" alt="Mastercard" class="payment-logo">
       </div>
       <p class="mt-3 text-muted">Choose your preferred payment method at checkout</p>
     </div>
   </section>
+
+  <style>
+  .payment-logo {
+      height: 60px;
+      max-width: 150px;
+      object-fit: contain;
+  }
+  @media (max-width: 576px) {
+      .payment-logo {
+          height: 45px;
+          margin-bottom: 10px;
+      }
+  }
+  </style>
 
   <!-- Checkout Form -->
   <form method="post" enctype="multipart/form-data" class="card p-4 shadow-sm">
