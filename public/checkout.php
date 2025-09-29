@@ -3,7 +3,7 @@ session_start();
 require_once "../config/db.php";
 include "../includes/header1.php";
 
-// Show PHP errors for debugging (remove in production)
+// Debugging (disable in production)
 error_reporting(E_ALL);
 ini_set("display_errors", 1);
 
@@ -11,7 +11,7 @@ ini_set("display_errors", 1);
 $user_email = "";
 $user_phone = "";
 if (isset($_SESSION['user_id'])) {
-    $uid = $_SESSION['user_id'];
+    $uid = (int)$_SESSION['user_id'];
     $res = $conn->query("SELECT email, phone FROM users WHERE id=$uid");
     if ($res && $row = $res->fetch_assoc()) {
         $user_email = $row['email'] ?? "";
@@ -19,30 +19,31 @@ if (isset($_SESSION['user_id'])) {
     }
 }
 
-// ✅ Calculate total
+// ✅ Calculate cart total
 $total = 0;
-foreach ($_SESSION['cart'] ?? [] as $key => $item) {
-    $pid   = $item['id'];
-    $qty   = (int)$item['quantity'];
-    $size  = $item['size'] ?? "";
+if (!empty($_SESSION['cart'])) {
+    foreach ($_SESSION['cart'] as $item) {
+        $pid  = (int)$item['id'];
+        $qty  = (int)$item['quantity'];
 
-    $result = $conn->query("SELECT price FROM products WHERE id=$pid");
-    if ($row = $result->fetch_assoc()) {
-        $price = (float)$row['price'];
-        $total += $price * $qty;
+        $result = $conn->query("SELECT price FROM products WHERE id=$pid");
+        if ($result && $row = $result->fetch_assoc()) {
+            $price = (float)$row['price'];
+            $total += $price * $qty;
+        }
     }
 }
 
 // ✅ Handle order submission
 if (isset($_POST['place_order'])) {
-    $name            = $_POST['name'];
-    $email           = $_POST['email'];
-    $phone           = $_POST['phone'];
-    $payment_method  = $_POST['payment_method'];
-    $delivery_address = $_POST['delivery_address'];
-    $proof           = "";
+    $name             = trim($_POST['name']);
+    $email            = trim($_POST['email']);
+    $phone            = trim($_POST['phone']);
+    $payment_method   = trim($_POST['payment_method']);
+    $delivery_address = trim($_POST['delivery_address']);
+    $proof            = "";
 
-    // Upload proof if provided
+    // Upload payment proof
     if (!empty($_FILES['proof']['name'])) {
         $proof = time() . "_" . basename($_FILES['proof']['name']);
         $uploadDir = $_SERVER['DOCUMENT_ROOT'] . "/uploads/";
@@ -50,12 +51,12 @@ if (isset($_POST['place_order'])) {
             mkdir($uploadDir, 0777, true);
         }
         if (!move_uploaded_file($_FILES['proof']['tmp_name'], $uploadDir . $proof)) {
-            die("❌ Failed to move uploaded file.");
+            die("❌ Failed to upload payment proof.");
         }
     }
 
     // Generate unique order number
-    $order_number = 'ORD' . time();
+    $order_number = "ORD" . time();
 
     // Insert into orders table
     $stmt = $conn->prepare("INSERT INTO orders 
@@ -78,11 +79,12 @@ if (isset($_POST['place_order'])) {
 
         // Insert order items
         foreach ($_SESSION['cart'] as $item) {
-            $pid   = $item['id'];
-            $qty   = (int)$item['quantity'];
-            $size  = $item['size'] ?? "";
+            $pid  = (int)$item['id'];
+            $qty  = (int)$item['quantity'];
+            $size = $item['size'] ?? "";
+
             $result = $conn->query("SELECT price FROM products WHERE id=$pid");
-            if ($row = $result->fetch_assoc()) {
+            if ($result && $row = $result->fetch_assoc()) {
                 $price = (float)$row['price'];
                 $oi = $conn->prepare("INSERT INTO order_items (order_id, product_id, quantity, price, size) VALUES (?, ?, ?, ?, ?)");
                 $oi->bind_param("iiids", $order_id, $pid, $qty, $price, $size);
@@ -90,7 +92,7 @@ if (isset($_POST['place_order'])) {
             }
         }
 
-        // Confirmation email
+        // Send confirmation email
         $subject = "Your Order Confirmation (#$order_number)";
         $message = "Hello $name,\n\nThank you for your purchase! Your order number is $order_number.\n\nDelivery Address: $delivery_address\nPhone: $phone";
         $headers = "From: no-reply@akuua.com";
@@ -100,27 +102,17 @@ if (isset($_POST['place_order'])) {
         // Clear cart
         $_SESSION['cart'] = [];
 
-        echo "<div class='alert alert-success text-center'>Order placed successfully! Your order number is <b>$order_number</b>. We’ll contact you soon.</div>";
+        echo "<div class='alert alert-success text-center'>✅ Order placed successfully! Your order number is <b>$order_number</b>.</div>";
     } else {
-        echo "<div class='alert alert-danger'>Error: " . $stmt->error . "</div>";
+        echo "<div class='alert alert-danger'>❌ Error: " . $stmt->error . "</div>";
     }
 }
 ?>
 <style>
-  body {
-    background: #fff;
-    color: #333;
-  }
-  .payment-logo {
-      height: 60px;
-      max-width: 150px;
-      object-fit: contain;
-  }
+  body { background: #fff; color: #333; }
+  .payment-logo { height: 60px; max-width: 150px; object-fit: contain; }
   @media (max-width: 576px) {
-      .payment-logo {
-          height: 45px;
-          margin-bottom: 10px;
-      }
+    .payment-logo { height: 45px; margin-bottom: 10px; }
   }
 </style>
 
@@ -149,19 +141,17 @@ if (isset($_POST['place_order'])) {
 
     <div class="mb-3">
       <label class="form-label">Email Address</label>
-      <input type="email" name="email" class="form-control" value="<?= htmlspecialchars($user_email ?? '') ?>" required>
+      <input type="email" name="email" class="form-control" value="<?= htmlspecialchars($user_email) ?>" required>
     </div>
 
     <div class="mb-3">
       <label class="form-label">Phone Number</label>
-      <input type="text" name="phone" class="form-control"
-             value="<?= htmlspecialchars($user_phone ?? '') ?>"
-             placeholder="e.g. 0991 234 567" required>
+      <input type="text" name="phone" class="form-control" value="<?= htmlspecialchars($user_phone) ?>" placeholder="e.g. 0991 234 567" required>
     </div>
 
     <div class="mb-3">
       <label class="form-label">Delivery Address</label>
-      <textarea name="delivery_address" class="form-control" rows="3" placeholder="e.g. Blantyre CTS / Lilongwe Speed Courier" required></textarea>
+      <textarea name="delivery_address" class="form-control" rows="3" required></textarea>
     </div>
 
     <div class="mb-3">
@@ -181,8 +171,7 @@ if (isset($_POST['place_order'])) {
       <input type="file" name="proof" class="form-control">
     </div>
 
-    <h4>Total: MWK <?= number_format($total,2) ?></h4>
-
+    <h4>Total: MWK <?= number_format($total, 2) ?></h4>
     <button type="submit" name="place_order" class="btn btn-success btn-lg mt-3">Place Order</button>
   </form>
 </div>
