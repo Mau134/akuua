@@ -3,6 +3,7 @@ session_start();
 require_once "../config/db.php";
 include "../includes/header1.php";
 
+// Show PHP errors for debugging (remove in production)
 error_reporting(E_ALL);
 ini_set("display_errors", 1);
 
@@ -10,34 +11,36 @@ ini_set("display_errors", 1);
 $user_email = "";
 $user_phone = "";
 if (isset($_SESSION['user_id'])) {
-    $uid = intval($_SESSION['user_id']);
+    $uid = $_SESSION['user_id'];
     $res = $conn->query("SELECT email, phone FROM users WHERE id=$uid");
     if ($res && $row = $res->fetch_assoc()) {
-        $user_email = $row['email'];
-        $user_phone = $row['phone'];
+        $user_email = $row['email'] ?? "";
+        $user_phone = $row['phone'] ?? "";
     }
 }
 
 // ✅ Calculate total
 $total = 0;
-foreach ($_SESSION['cart'] ?? [] as $id => $item) {
-    // Get qty safely (handles both int or array)
-    $qty = is_array($item) ? $item['qty'] : $item;
+foreach ($_SESSION['cart'] ?? [] as $key => $item) {
+    $pid   = $item['id'];
+    $qty   = (int)$item['quantity'];
+    $size  = $item['size'] ?? "";
 
-    $result = $conn->query("SELECT price FROM products WHERE id=" . intval($id));
+    $result = $conn->query("SELECT price FROM products WHERE id=$pid");
     if ($row = $result->fetch_assoc()) {
-        $total += $row['price'] * $qty;
+        $price = (float)$row['price'];
+        $total += $price * $qty;
     }
 }
 
 // ✅ Handle order submission
 if (isset($_POST['place_order'])) {
-    $name = $_POST['name'];
-    $email = $_POST['email'];
-    $phone = $_POST['phone'];
-    $payment_method = $_POST['payment_method'];
+    $name            = $_POST['name'];
+    $email           = $_POST['email'];
+    $phone           = $_POST['phone'];
+    $payment_method  = $_POST['payment_method'];
     $delivery_address = $_POST['delivery_address'];
-    $proof = "";
+    $proof           = "";
 
     // Upload proof if provided
     if (!empty($_FILES['proof']['name'])) {
@@ -58,7 +61,8 @@ if (isset($_POST['place_order'])) {
     $stmt = $conn->prepare("INSERT INTO orders 
         (order_number, customer_name, customer_email, customer_phone, total, payment_method, payment_proof, delivery_address, status) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Order Received')");
-    $stmt->bind_param("ssssdsss",
+    $stmt->bind_param(
+        "ssssdsss",
         $order_number,
         $name,
         $email,
@@ -72,40 +76,29 @@ if (isset($_POST['place_order'])) {
     if ($stmt->execute()) {
         $order_id = $stmt->insert_id;
 
-        // ✅ Insert items into order_items
-        foreach ($_SESSION['cart'] as $pid => $item) {
-            $qty = is_array($item) ? $item['qty'] : $item;
-            $size = is_array($item) && isset($item['size']) ? $item['size'] : null;
-
-            $res = $conn->query("SELECT price FROM products WHERE id=" . intval($pid));
-            if ($res && $row = $res->fetch_assoc()) {
-                $price = $row['price'];
-
-                // If your order_items table has a size column, include it
-                if ($size !== null) {
-                    $stmt2 = $conn->prepare("INSERT INTO order_items 
-                        (order_id, product_id, quantity, price, size) 
-                        VALUES (?, ?, ?, ?, ?)");
-                    $stmt2->bind_param("iiids", $order_id, $pid, $qty, $price, $size);
-                } else {
-                    $stmt2 = $conn->prepare("INSERT INTO order_items 
-                        (order_id, product_id, quantity, price) 
-                        VALUES (?, ?, ?, ?)");
-                    $stmt2->bind_param("iiid", $order_id, $pid, $qty, $price);
-                }
-
-                $stmt2->execute();
+        // Insert order items
+        foreach ($_SESSION['cart'] as $item) {
+            $pid   = $item['id'];
+            $qty   = (int)$item['quantity'];
+            $size  = $item['size'] ?? "";
+            $result = $conn->query("SELECT price FROM products WHERE id=$pid");
+            if ($row = $result->fetch_assoc()) {
+                $price = (float)$row['price'];
+                $oi = $conn->prepare("INSERT INTO order_items (order_id, product_id, quantity, price, size) VALUES (?, ?, ?, ?, ?)");
+                $oi->bind_param("iiids", $order_id, $pid, $qty, $price, $size);
+                $oi->execute();
             }
         }
 
-        // ✅ Confirmation email
+        // Confirmation email
         $subject = "Your Order Confirmation (#$order_number)";
         $message = "Hello $name,\n\nThank you for your purchase! Your order number is $order_number.\n\nDelivery Address: $delivery_address\nPhone: $phone";
         $headers = "From: no-reply@akuua.com";
 
         @mail($email, $subject, $message, $headers);
 
-        $_SESSION['cart'] = []; // Clear cart
+        // Clear cart
+        $_SESSION['cart'] = [];
 
         echo "<div class='alert alert-success text-center'>Order placed successfully! Your order number is <b>$order_number</b>. We’ll contact you soon.</div>";
     } else {
@@ -117,6 +110,17 @@ if (isset($_POST['place_order'])) {
   body {
     background: #fff;
     color: #333;
+  }
+  .payment-logo {
+      height: 60px;
+      max-width: 150px;
+      object-fit: contain;
+  }
+  @media (max-width: 576px) {
+      .payment-logo {
+          height: 45px;
+          margin-bottom: 10px;
+      }
   }
 </style>
 
@@ -136,20 +140,6 @@ if (isset($_POST['place_order'])) {
     </div>
   </section>
 
-  <style>
-  .payment-logo {
-      height: 60px;
-      max-width: 150px;
-      object-fit: contain;
-  }
-  @media (max-width: 576px) {
-      .payment-logo {
-          height: 45px;
-          margin-bottom: 10px;
-      }
-  }
-  </style>
-
   <!-- Checkout Form -->
   <form method="post" enctype="multipart/form-data" class="card p-4 shadow-sm">
     <div class="mb-3">
@@ -159,13 +149,13 @@ if (isset($_POST['place_order'])) {
 
     <div class="mb-3">
       <label class="form-label">Email Address</label>
-      <input type="email" name="email" class="form-control" value="<?= htmlspecialchars($user_email) ?>" required>
+      <input type="email" name="email" class="form-control" value="<?= htmlspecialchars($user_email ?? '') ?>" required>
     </div>
 
     <div class="mb-3">
       <label class="form-label">Phone Number</label>
       <input type="text" name="phone" class="form-control"
-             value="<?= htmlspecialchars($user_phone) ?>"
+             value="<?= htmlspecialchars($user_phone ?? '') ?>"
              placeholder="e.g. 0991 234 567" required>
     </div>
 
