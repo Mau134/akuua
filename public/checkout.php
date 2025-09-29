@@ -3,7 +3,6 @@ session_start();
 require_once "../config/db.php";
 include "../includes/header1.php";
 
-// Show PHP errors for debugging
 error_reporting(E_ALL);
 ini_set("display_errors", 1);
 
@@ -11,8 +10,8 @@ ini_set("display_errors", 1);
 $user_email = "";
 $user_phone = "";
 if (isset($_SESSION['user_id'])) {
-    $uid = $_SESSION['user_id'];
-    $res = $conn->query("SELECT email, phone FROM users WHERE id=" . intval($uid));
+    $uid = intval($_SESSION['user_id']);
+    $res = $conn->query("SELECT email, phone FROM users WHERE id=$uid");
     if ($res && $row = $res->fetch_assoc()) {
         $user_email = $row['email'];
         $user_phone = $row['phone'];
@@ -21,7 +20,10 @@ if (isset($_SESSION['user_id'])) {
 
 // ✅ Calculate total
 $total = 0;
-foreach ($_SESSION['cart'] ?? [] as $id => $qty) {
+foreach ($_SESSION['cart'] ?? [] as $id => $item) {
+    // Get qty safely (handles both int or array)
+    $qty = is_array($item) ? $item['qty'] : $item;
+
     $result = $conn->query("SELECT price FROM products WHERE id=" . intval($id));
     if ($row = $result->fetch_assoc()) {
         $total += $row['price'] * $qty;
@@ -71,15 +73,27 @@ if (isset($_POST['place_order'])) {
         $order_id = $stmt->insert_id;
 
         // ✅ Insert items into order_items
-        foreach ($_SESSION['cart'] as $pid => $qty) {
+        foreach ($_SESSION['cart'] as $pid => $item) {
+            $qty = is_array($item) ? $item['qty'] : $item;
+            $size = is_array($item) && isset($item['size']) ? $item['size'] : null;
+
             $res = $conn->query("SELECT price FROM products WHERE id=" . intval($pid));
             if ($res && $row = $res->fetch_assoc()) {
                 $price = $row['price'];
 
-                $stmt2 = $conn->prepare("INSERT INTO order_items 
-                    (order_id, product_id, quantity, price) 
-                    VALUES (?, ?, ?, ?)");
-                $stmt2->bind_param("iiid", $order_id, $pid, $qty, $price);
+                // If your order_items table has a size column, include it
+                if ($size !== null) {
+                    $stmt2 = $conn->prepare("INSERT INTO order_items 
+                        (order_id, product_id, quantity, price, size) 
+                        VALUES (?, ?, ?, ?, ?)");
+                    $stmt2->bind_param("iiids", $order_id, $pid, $qty, $price, $size);
+                } else {
+                    $stmt2 = $conn->prepare("INSERT INTO order_items 
+                        (order_id, product_id, quantity, price) 
+                        VALUES (?, ?, ?, ?)");
+                    $stmt2->bind_param("iiid", $order_id, $pid, $qty, $price);
+                }
+
                 $stmt2->execute();
             }
         }
@@ -91,8 +105,7 @@ if (isset($_POST['place_order'])) {
 
         @mail($email, $subject, $message, $headers);
 
-        // Clear cart
-        $_SESSION['cart'] = [];
+        $_SESSION['cart'] = []; // Clear cart
 
         echo "<div class='alert alert-success text-center'>Order placed successfully! Your order number is <b>$order_number</b>. We’ll contact you soon.</div>";
     } else {
