@@ -68,7 +68,7 @@ if (isset($_POST['decline_order'])) {
     exit;
 }
 
-// ✅ Delete rejected order
+// ✅ Delete order
 if (isset($_POST['delete_order'])) {
     $id = intval($_POST['id']);
     $delete = $conn->prepare("DELETE FROM orders WHERE id=?");
@@ -105,10 +105,8 @@ function sendMail($to, $subject, $body) {
     }
 }
 
-// ✅ Fetch orders grouped by status
-$approvedOrders = $conn->query("SELECT * FROM orders WHERE status='Approved' ORDER BY id DESC");
-$declinedOrders = $conn->query("SELECT * FROM orders WHERE status='Declined' ORDER BY id DESC");
-$pendingOrders  = $conn->query("SELECT * FROM orders WHERE status NOT IN ('Approved','Declined') ORDER BY id DESC");
+// ✅ Fetch all orders
+$orders = $conn->query("SELECT * FROM orders ORDER BY id DESC");
 
 // ✅ Helper: Fetch items for an order
 function getOrderItems($orderId, $conn) {
@@ -144,20 +142,9 @@ function getOrderItems($orderId, $conn) {
     </div>
   <?php endif; ?>
 
-  <!-- ✅ Orders Section -->
-  <?php
-  $sections = [
-    "Approved Orders" => ["data" => $approvedOrders, "class" => "success"],
-    "Declined Orders" => ["data" => $declinedOrders, "class" => "danger"],
-    "Pending / In Progress Orders" => ["data" => $pendingOrders, "class" => "warning"]
-  ];
-
-  foreach ($sections as $title => $info):
-      $orders = $info['data'];
-      $color = $info['class'];
-  ?>
+  <!-- ✅ Orders Table -->
   <div class="card shadow-sm mb-4">
-    <div class="card-header bg-<?= $color ?> text-white"><?= $title ?></div>
+    <div class="card-header bg-dark text-white">All Orders</div>
     <div class="card-body">
       <?php if ($orders->num_rows > 0): ?>
       <table class="table table-hover align-middle">
@@ -172,7 +159,7 @@ function getOrderItems($orderId, $conn) {
             <th>Date</th>
             <th>Status</th>
             <th>Items</th>
-            <?php if ($color != 'success'): ?><th>Actions</th><?php endif; ?>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -197,7 +184,16 @@ function getOrderItems($orderId, $conn) {
             </td>
             <td><?= nl2br(htmlspecialchars(!empty($row['delivery_address']) ? $row['delivery_address'] : $row['customer_address'])) ?></td>
             <td><?= $row['created_at'] ?></td>
-            <td><span class="badge bg-<?= $color ?>"><?= htmlspecialchars($row['status']) ?></span></td>
+            <td>
+              <?php
+                $status = $row['status'] ?? 'Pending';
+                $badgeClass = 'secondary';
+                if ($status == 'Approved') $badgeClass = 'success';
+                elseif ($status == 'Declined') $badgeClass = 'danger';
+                elseif ($status == 'Pending') $badgeClass = 'warning';
+              ?>
+              <span class="badge bg-<?= $badgeClass ?>"><?= htmlspecialchars($status) ?></span>
+            </td>
             <td>
               <ul class="list-unstyled mb-0">
                 <?php foreach (getOrderItems($row['id'], $conn) as $item): ?>
@@ -208,36 +204,29 @@ function getOrderItems($orderId, $conn) {
                 <?php endforeach; ?>
               </ul>
             </td>
-            <?php if ($color == 'warning'): ?>
-              <td>
-                <form method="post" class="d-inline">
-                  <input type="hidden" name="id" value="<?= $row['id'] ?>">
-                  <button type="submit" name="approve_order" class="btn btn-sm btn-success">Approve</button>
-                </form>
-                <form method="post" class="d-inline">
-                  <input type="hidden" name="id" value="<?= $row['id'] ?>">
-                  <button type="submit" name="decline_order" class="btn btn-sm btn-danger">Decline</button>
-                </form>
-              </td>
-            <?php elseif ($color == 'danger'): ?>
-              <td>
-                <form method="post" class="d-inline">
-                  <input type="hidden" name="id" value="<?= $row['id'] ?>">
-                  <button type="submit" name="delete_order" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this rejected order?')">Delete</button>
-                </form>
-              </td>
-            <?php endif; ?>
+            <td>
+              <form method="post" class="d-inline">
+                <input type="hidden" name="id" value="<?= $row['id'] ?>">
+                <button type="submit" name="approve_order" class="btn btn-sm btn-success">Approve</button>
+              </form>
+              <form method="post" class="d-inline">
+                <input type="hidden" name="id" value="<?= $row['id'] ?>">
+                <button type="submit" name="decline_order" class="btn btn-sm btn-danger">Decline</button>
+              </form>
+              <form method="post" class="d-inline">
+                <input type="hidden" name="id" value="<?= $row['id'] ?>">
+                <button type="submit" name="delete_order" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this order?')">Delete</button>
+              </form>
+            </td>
           </tr>
         <?php endwhile; ?>
         </tbody>
       </table>
       <?php else: ?>
-        <p class="text-muted">No <?= strtolower($title) ?> yet.</p>
+        <p class="text-muted">No orders yet.</p>
       <?php endif; ?>
     </div>
   </div>
-  <?php endforeach; ?>
-
 </div>
 <?php include "./includes/footer.php"; ?>
 </body>
