@@ -159,7 +159,7 @@ function getOrderItems($orderId, $conn) {
       <th style="min-width:80px;">Proof</th>
       <th style="min-width:200px;">Delivery Address</th>
       <th>Date</th>
-      <th style="min-width:200px;">Items</th>
+      <!-- <th style="min-width:200px;">Items</th> -->
       <th style="min-width:180px;">Actions</th>
     </tr>
   </thead>
