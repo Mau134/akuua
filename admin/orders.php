@@ -206,23 +206,22 @@ function getOrderItems($orderId, $conn) {
               </div>
             </td>
             <?php if ($color == 'warning'): ?>
-              <td>
-                <form method="post" class="d-inline">
-                  <input type="hidden" name="id" value="<?= $row['id'] ?>">
-                  <button type="submit" name="approve_order" class="btn btn-sm btn-success">Approve</button>
-                </form>
-                <form method="post" class="d-inline">
-                  <input type="hidden" name="id" value="<?= $row['id'] ?>">
-                  <button type="submit" name="decline_order" class="btn btn-sm btn-danger">Decline</button>
-                </form>
-              </td>
-            <?php elseif ($color == 'danger'): ?>
-              <td>
-                <form method="post" class="d-inline">
-                  <input type="hidden" name="id" value="<?= $row['id'] ?>">
-                  <button type="submit" name="delete_order" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this rejected order?')">Delete</button>
-                </form>
-              </td>
+<td>
+  <form method="post" class="d-inline">
+    <input type="hidden" name="id" value="<?= $row['id'] ?>">
+    <button type="submit" name="approve_order" class="btn btn-sm btn-success">Approve</button>
+  </form>
+  <form method="post" class="d-inline">
+    <input type="hidden" name="id" value="<?= $row['id'] ?>">
+    <button type="submit" name="decline_order" class="btn btn-sm btn-danger">Decline</button>
+  </form>
+  <?php if ($color == 'danger'): ?>
+    <form method="post" class="d-inline">
+      <input type="hidden" name="id" value="<?= $row['id'] ?>">
+      <button type="submit" name="delete_order" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this rejected order?')">Delete</button>
+    </form>
+  <?php endif; ?>
+</td>
             <?php endif; ?>
           </tr>
         <?php endwhile; ?>
