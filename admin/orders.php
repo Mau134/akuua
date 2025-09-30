@@ -7,15 +7,9 @@ use PHPMailer\PHPMailer\Exception;
 include '../config/db.php';
 include "./includes/header.php";
 
-// ✅ Cart badge logic
-$cart_count = 0;
-if (isset($_SESSION['cart']) && is_array($_SESSION['cart'])) {
-    foreach ($_SESSION['cart'] as $item) {
-        if (isset($item['quantity'])) {
-            $cart_count += (int)$item['quantity'];
-        }
-    }
-}
+/* =========================
+   ORDER ACTIONS
+   ========================= */
 
 // ✅ Approve order
 if (isset($_POST['approve_order'])) {
@@ -92,7 +86,9 @@ if (isset($_POST['delete_order'])) {
     exit;
 }
 
-// ✅ Mail helper
+/* =========================
+   MAIL HELPER
+   ========================= */
 function sendMail($to, $subject, $body) {
     $mail = new PHPMailer(true);
     try {
@@ -115,12 +111,16 @@ function sendMail($to, $subject, $body) {
     }
 }
 
-// ✅ Fetch orders grouped by status
+/* =========================
+   FETCH ORDERS
+   ========================= */
 $approvedOrders = $conn->query("SELECT * FROM orders WHERE status='Approved' ORDER BY id DESC");
 $declinedOrders = $conn->query("SELECT * FROM orders WHERE status='Declined' ORDER BY id DESC");
 $pendingOrders  = $conn->query("SELECT * FROM orders WHERE status NOT IN ('Approved','Declined') ORDER BY id DESC");
 
-// ✅ Helper: Fetch items for an order
+/* =========================
+   HELPER: Fetch items
+   ========================= */
 function getOrderItems($orderId, $conn) {
     $items = [];
     $stmt = $conn->prepare("SELECT product_name, color, size, quantity, price FROM order_items WHERE order_id=?");
@@ -145,13 +145,6 @@ function getOrderItems($orderId, $conn) {
 <body class="bg-light">
 <div class="container py-5">
   <h2 class="mb-4">Manage Orders</h2>
-
-  <!-- ✅ Show Cart Badge -->
-  <div class="mb-3">
-    <a href="cart.php" class="btn btn-primary">
-      🛒 Cart <span class="badge bg-warning text-dark"><?= $cart_count ?></span>
-    </a>
-  </div>
 
   <!-- Flash Messages -->
   <?php if (isset($_SESSION['flash'])): ?>
@@ -217,12 +210,18 @@ function getOrderItems($orderId, $conn) {
             <td><span class="badge bg-<?= $color ?>"><?= htmlspecialchars($row['status']) ?></span></td>
             <td>
               <ul class="list-unstyled mb-0">
-                <?php foreach (getOrderItems($row['id'], $conn) as $item): ?>
-                  <li>🛒 <?= htmlspecialchars($item['product_name']) ?> 
-                      (<?= htmlspecialchars($item['color']) ?>, <?= htmlspecialchars($item['size']) ?>) 
-                      x <?= (int)$item['quantity'] ?> - MWK<?= number_format($item['price'], 2) ?>
-                  </li>
-                <?php endforeach; ?>
+                <?php 
+                $items = getOrderItems($row['id'], $conn);
+                if (!empty($items)): 
+                  foreach ($items as $item): ?>
+                    <li>🛒 <?= htmlspecialchars($item['product_name']) ?> 
+                        (<?= htmlspecialchars($item['color']) ?>, <?= htmlspecialchars($item['size']) ?>) 
+                        x <?= (int)$item['quantity'] ?> - MWK<?= number_format($item['price'], 2) ?>
+                    </li>
+                  <?php endforeach; ?>
+                <?php else: ?>
+                  <li class="text-muted">No items found for this order</li>
+                <?php endif; ?>
               </ul>
             </td>
             <?php if ($color == 'warning'): ?>
