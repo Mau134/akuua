@@ -187,6 +187,7 @@ function getOrderItems($orderId, $conn) {
           <?= nl2br(htmlspecialchars(!empty($row['delivery_address']) ? $row['delivery_address'] : $row['customer_address'])) ?>
         </td>
         <td><?= $row['created_at'] ?></td>
+        <!--
         <td>
           <button class="btn btn-sm btn-outline-dark" type="button" data-bs-toggle="collapse" data-bs-target="#items<?= $row['id'] ?>">View</button>
           <div class="collapse mt-2" id="items<?= $row['id'] ?>">
@@ -194,19 +195,20 @@ function getOrderItems($orderId, $conn) {
               <?php 
               $items = getOrderItems($row['id'], $conn);
               if (!empty($items)): 
-                foreach ($items as $item): ?>
-                  <li>🛒 <?= htmlspecialchars($item['product_name']) ?> 
-                      (<?= htmlspecialchars($item['color']) ?>, <?= htmlspecialchars($item['size']) ?>) 
-                      x <?= (int)$item['quantity'] ?> - MWK<?= number_format($item['price'], 2) ?>
-                  </li>
-                <?php endforeach; ?>
+          foreach ($items as $item): ?>
+            <li>🛒 <?= htmlspecialchars($item['product_name']) ?> 
+                (<?= htmlspecialchars($item['color']) ?>, <?= htmlspecialchars($item['size']) ?>) 
+                x <?= (int)$item['quantity'] ?> - MWK<?= number_format($item['price'], 2) ?>
+            </li>
+          <?php endforeach; ?>
               <?php else: ?>
-                <li class="text-muted">No items</li>
+          <li class="text-muted">No items</li>
               <?php endif; ?>
             </ul>
           </div>
         </td>
-        <td>
+        -->
+        <td class="text-center" style="min-width:220px;">
   <?php if ($color == 'warning'): ?>
     <!-- Pending orders -->
     <div class="btn-group" role="group" aria-label="Order Actions">
