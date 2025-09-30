@@ -7,6 +7,16 @@ use PHPMailer\PHPMailer\Exception;
 include '../config/db.php';
 include "./includes/header.php";
 
+// ✅ Cart badge logic
+$cart_count = 0;
+if (isset($_SESSION['cart']) && is_array($_SESSION['cart'])) {
+    foreach ($_SESSION['cart'] as $item) {
+        if (isset($item['quantity'])) {
+            $cart_count += (int)$item['quantity'];
+        }
+    }
+}
+
 // ✅ Approve order
 if (isset($_POST['approve_order'])) {
     $id = intval($_POST['id']);
@@ -135,6 +145,13 @@ function getOrderItems($orderId, $conn) {
 <body class="bg-light">
 <div class="container py-5">
   <h2 class="mb-4">Manage Orders</h2>
+
+  <!-- ✅ Show Cart Badge -->
+  <div class="mb-3">
+    <a href="cart.php" class="btn btn-primary">
+      🛒 Cart <span class="badge bg-warning text-dark"><?= $cart_count ?></span>
+    </a>
+  </div>
 
   <!-- Flash Messages -->
   <?php if (isset($_SESSION['flash'])): ?>
