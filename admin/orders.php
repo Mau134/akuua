@@ -206,30 +206,30 @@ function getOrderItems($orderId, $conn) {
             </ul>
           </div>
         </td>
-        <td class="text-center">
-          <?php if ($color == 'warning'): ?>
-            <!-- Pending orders -->
-            <div class="d-flex flex-wrap gap-2 justify-content-center">
-              <form method="post">
-                <input type="hidden" name="id" value="<?= $row['id'] ?>">
-                <button type="submit" name="approve_order" class="btn btn-sm btn-success w-100">Approve</button>
-              </form>
-              <form method="post">
-                <input type="hidden" name="id" value="<?= $row['id'] ?>">
-                <button type="submit" name="decline_order" class="btn btn-sm btn-danger w-100">Decline</button>
-              </form>
-            </div>
-          <?php elseif ($color == 'danger'): ?>
-            <!-- Declined orders -->
-            <form method="post">
-              <input type="hidden" name="id" value="<?= $row['id'] ?>">
-              <button type="submit" name="delete_order" class="btn btn-sm btn-outline-danger w-100" onclick="return confirm('Delete this rejected order?')">Delete</button>
-            </form>
-          <?php elseif ($color == 'success'): ?>
-            <!-- Approved orders -->
-            <span class="badge bg-success">Approved</span>
-          <?php endif; ?>
-        </td>
+        <td class="text-center" style="min-width:220px;">
+  <?php if ($color == 'warning'): ?>
+    <!-- Pending orders -->
+    <div class="btn-group" role="group" aria-label="Order Actions">
+      <form method="post" class="d-inline">
+        <input type="hidden" name="id" value="<?= $row['id'] ?>">
+        <button type="submit" name="approve_order" class="btn btn-success btn-sm">Approve</button>
+      </form>
+      <form method="post" class="d-inline">
+        <input type="hidden" name="id" value="<?= $row['id'] ?>">
+        <button type="submit" name="decline_order" class="btn btn-danger btn-sm">Decline</button>
+      </form>
+    </div>
+  <?php elseif ($color == 'danger'): ?>
+    <!-- Declined orders -->
+    <form method="post" class="d-inline">
+      <input type="hidden" name="id" value="<?= $row['id'] ?>">
+      <button type="submit" name="delete_order" class="btn btn-outline-danger btn-sm" onclick="return confirm('Delete this rejected order?')">Delete</button>
+    </form>
+  <?php elseif ($color == 'success'): ?>
+    <!-- Approved orders -->
+    <span class="badge bg-success">Approved</span>
+  <?php endif; ?>
+</td>
       </tr>
     <?php endwhile; ?>
   </tbody>
