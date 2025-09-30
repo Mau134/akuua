@@ -159,7 +159,6 @@ function getOrderItems($orderId, $conn) {
             <th>Proof</th>
             <th>Delivery Address</th>
             <th>Date</th>
-            <th>Status</th>
             <th style="min-width:160px;">Items</th>
             <?php if ($color != 'success'): ?><th style="min-width:120px;">Actions</th><?php endif; ?>
           </tr>
@@ -186,7 +185,6 @@ function getOrderItems($orderId, $conn) {
             </td>
             <td style="max-width:180px; white-space:normal;"><?= nl2br(htmlspecialchars(!empty($row['delivery_address']) ? $row['delivery_address'] : $row['customer_address'])) ?></td>
             <td><?= $row['created_at'] ?></td>
-            <td><span class="badge bg-<?= $color ?>"><?= htmlspecialchars($row['status']) ?></span></td>
             <td>
               <!-- Collapsible Items -->
               <button class="btn btn-sm btn-outline-dark" type="button" data-bs-toggle="collapse" data-bs-target="#items<?= $row['id'] ?>">View</button>
