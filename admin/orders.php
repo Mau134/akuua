@@ -149,90 +149,92 @@ function getOrderItems($orderId, $conn) {
     <div class="card-header bg-<?= $color ?> text-white"><?= $title ?></div>
     <div class="card-body table-responsive">
       <?php if ($orders->num_rows > 0): ?>
-      <table class="table table-hover align-middle text-nowrap">
-       <thead class="table-light">
-  <tr>
-    <th>Order #</th>
-    <th>Customer</th>
-    <th>Total</th>
-    <th>Payment</th>
-    <th>Proof</th>
-    <th>Delivery Address</th>
-    <th>Date</th>
-    <th style="min-width:160px;">Items</th>
-    <th style="min-width:120px;">Actions</th>
-  </tr>
-</thead>
-<tbody>
-<?php while($row = $orders->fetch_assoc()): ?>
-  <tr>
-    <td><?= htmlspecialchars($row['order_number']) ?></td>
-    <td>
-      <?= htmlspecialchars($row['customer_name']) ?><br>
-      <small><?= htmlspecialchars($row['customer_email']) ?></small><br>
-      <small>📞 <?= htmlspecialchars($row['customer_phone']) ?></small>
-    </td>
-    <td>MWK<?= number_format($row['total'], 2) ?></td>
-    <td><?= htmlspecialchars($row['payment_method']) ?></td>
-    <td>
-      <?php if (!empty($row['payment_proof'])): ?>
-        <a href="../uploads/<?= htmlspecialchars($row['payment_proof']) ?>" target="_blank">
-          <img src="../uploads/<?= htmlspecialchars($row['payment_proof']) ?>" style="max-width:60px; height:auto;">
-        </a>
-      <?php else: ?>
-        <span class="text-muted">No proof</span>
-      <?php endif; ?>
-    </td>
-    <td style="max-width:180px; white-space:normal;">
-      <?= nl2br(htmlspecialchars(!empty($row['delivery_address']) ? $row['delivery_address'] : $row['customer_address'])) ?>
-    </td>
-    <td><?= $row['created_at'] ?></td>
-    <td>
-      <!-- Collapsible Items -->
-      <button class="btn btn-sm btn-outline-dark" type="button" data-bs-toggle="collapse" data-bs-target="#items<?= $row['id'] ?>">View</button>
-      <div class="collapse mt-2" id="items<?= $row['id'] ?>">
-        <ul class="list-unstyled small mb-0">
-          <?php 
-          $items = getOrderItems($row['id'], $conn);
-          if (!empty($items)): 
-            foreach ($items as $item): ?>
-              <li>🛒 <?= htmlspecialchars($item['product_name']) ?> 
-                  (<?= htmlspecialchars($item['color']) ?>, <?= htmlspecialchars($item['size']) ?>) 
-                  x <?= (int)$item['quantity'] ?> - MWK<?= number_format($item['price'], 2) ?>
-              </li>
-            <?php endforeach; ?>
+<table class="table table-hover align-middle">
+  <thead class="table-light">
+    <tr>
+      <th style="min-width:120px;">Order #</th>
+      <th style="min-width:180px;">Customer</th>
+      <th>Total</th>
+      <th>Payment</th>
+      <th style="min-width:80px;">Proof</th>
+      <th style="min-width:200px;">Delivery Address</th>
+      <th>Date</th>
+      <th style="min-width:200px;">Items</th>
+      <th style="min-width:180px;">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <?php while($row = $orders->fetch_assoc()): ?>
+      <tr>
+        <td><?= htmlspecialchars($row['order_number']) ?></td>
+        <td>
+          <?= htmlspecialchars($row['customer_name']) ?><br>
+          <small><?= htmlspecialchars($row['customer_email']) ?></small><br>
+          <small>📞 <?= htmlspecialchars($row['customer_phone']) ?></small>
+        </td>
+        <td>MWK<?= number_format($row['total'], 2) ?></td>
+        <td><?= htmlspecialchars($row['payment_method']) ?></td>
+        <td>
+          <?php if (!empty($row['payment_proof'])): ?>
+            <a href="../uploads/<?= htmlspecialchars($row['payment_proof']) ?>" target="_blank">
+              <img src="../uploads/<?= htmlspecialchars($row['payment_proof']) ?>" style="max-width:60px; height:auto;">
+            </a>
           <?php else: ?>
-            <li class="text-muted">No items</li>
+            <span class="text-muted">No proof</span>
           <?php endif; ?>
-        </ul>
-      </div>
-    </td>
-    <td>
-      <?php if ($color == 'warning'): ?>
-        <!-- Pending orders -->
-        <form method="post" class="d-inline">
-          <input type="hidden" name="id" value="<?= $row['id'] ?>">
-          <button type="submit" name="approve_order" class="btn btn-sm btn-success">Approve</button>
-        </form>
-        <form method="post" class="d-inline">
-          <input type="hidden" name="id" value="<?= $row['id'] ?>">
-          <button type="submit" name="decline_order" class="btn btn-sm btn-danger">Decline</button>
-        </form>
-      <?php elseif ($color == 'danger'): ?>
-        <!-- Declined orders -->
-        <form method="post" class="d-inline">
-          <input type="hidden" name="id" value="<?= $row['id'] ?>">
-          <button type="submit" name="delete_order" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this rejected order?')">Delete</button>
-        </form>
-      <?php elseif ($color == 'success'): ?>
-        <!-- Approved orders -->
-        <span class="badge bg-success">Approved</span>
-      <?php endif; ?>
-    </td>
-  </tr>
-<?php endwhile; ?>
-</tbody>
-      </table>
+        </td>
+        <td style="white-space:normal;">
+          <?= nl2br(htmlspecialchars(!empty($row['delivery_address']) ? $row['delivery_address'] : $row['customer_address'])) ?>
+        </td>
+        <td><?= $row['created_at'] ?></td>
+        <td>
+          <button class="btn btn-sm btn-outline-dark" type="button" data-bs-toggle="collapse" data-bs-target="#items<?= $row['id'] ?>">View</button>
+          <div class="collapse mt-2" id="items<?= $row['id'] ?>">
+            <ul class="list-unstyled small mb-0">
+              <?php 
+              $items = getOrderItems($row['id'], $conn);
+              if (!empty($items)): 
+                foreach ($items as $item): ?>
+                  <li>🛒 <?= htmlspecialchars($item['product_name']) ?> 
+                      (<?= htmlspecialchars($item['color']) ?>, <?= htmlspecialchars($item['size']) ?>) 
+                      x <?= (int)$item['quantity'] ?> - MWK<?= number_format($item['price'], 2) ?>
+                  </li>
+                <?php endforeach; ?>
+              <?php else: ?>
+                <li class="text-muted">No items</li>
+              <?php endif; ?>
+            </ul>
+          </div>
+        </td>
+        <td class="text-center">
+          <?php if ($color == 'warning'): ?>
+            <!-- Pending orders -->
+            <div class="d-flex flex-wrap gap-2 justify-content-center">
+              <form method="post">
+                <input type="hidden" name="id" value="<?= $row['id'] ?>">
+                <button type="submit" name="approve_order" class="btn btn-sm btn-success w-100">Approve</button>
+              </form>
+              <form method="post">
+                <input type="hidden" name="id" value="<?= $row['id'] ?>">
+                <button type="submit" name="decline_order" class="btn btn-sm btn-danger w-100">Decline</button>
+              </form>
+            </div>
+          <?php elseif ($color == 'danger'): ?>
+            <!-- Declined orders -->
+            <form method="post">
+              <input type="hidden" name="id" value="<?= $row['id'] ?>">
+              <button type="submit" name="delete_order" class="btn btn-sm btn-outline-danger w-100" onclick="return confirm('Delete this rejected order?')">Delete</button>
+            </form>
+          <?php elseif ($color == 'success'): ?>
+            <!-- Approved orders -->
+            <span class="badge bg-success">Approved</span>
+          <?php endif; ?>
+        </td>
+      </tr>
+    <?php endwhile; ?>
+  </tbody>
+</table>
+
       <?php else: ?>
         <p class="text-muted">No <?= strtolower($title) ?> yet.</p>
       <?php endif; ?>
