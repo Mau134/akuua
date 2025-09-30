@@ -7,14 +7,9 @@ use PHPMailer\PHPMailer\Exception;
 include '../config/db.php';
 include "./includes/header.php";
 
-/* =========================
-   ORDER ACTIONS
-   ========================= */
-
 // ✅ Approve order
 if (isset($_POST['approve_order'])) {
     $id = intval($_POST['id']);
-
     $stmt = $conn->prepare("SELECT id, customer_name, customer_email, customer_phone, total, customer_address, delivery_address FROM orders WHERE id=?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
@@ -23,22 +18,18 @@ if (isset($_POST['approve_order'])) {
     if ($order) {
         $update = $conn->prepare("UPDATE orders SET `status`='Approved' WHERE id=?");
         $update->bind_param("i", $id);
-
         if ($update->execute()) {
             $address = !empty($order['delivery_address']) ? $order['delivery_address'] : $order['customer_address'];
-
             $message = "Dear {$order['customer_name']},<br><br>
             Your order (#{$order['id']}) with a total of MWK " . number_format($order['total'], 2) . " has been <b>approved</b>.<br><br>
             Delivery Address: {$address}<br><br>
             Thank you for shopping with us.<br><br>- Akuua Store Team";
-
             sendMail($order['customer_email'], "Order #{$order['id']} Approved - Akuua Store", $message);
             $_SESSION['flash'] = "✅ Order #{$order['id']} approved successfully.";
         } else {
-            $_SESSION['flash'] = "❌ Failed to approve order #{$order['id']}. DB error: " . $update->error;
+            $_SESSION['flash'] = "❌ Failed to approve order #{$order['id']}.";
         }
     }
-
     header("Location: orders.php");
     exit;
 }
@@ -46,7 +37,6 @@ if (isset($_POST['approve_order'])) {
 // ✅ Decline order
 if (isset($_POST['decline_order'])) {
     $id = intval($_POST['id']);
-
     $stmt = $conn->prepare("SELECT id, customer_name, customer_email, customer_phone, total FROM orders WHERE id=?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
@@ -55,19 +45,16 @@ if (isset($_POST['decline_order'])) {
     if ($order) {
         $update = $conn->prepare("UPDATE orders SET `status`='Declined' WHERE id=?");
         $update->bind_param("i", $id);
-
         if ($update->execute()) {
             $message = "Dear {$order['customer_name']},<br><br>
             Unfortunately, your order (#{$order['id']}) with a total of MWK " . number_format($order['total'], 2) . " has been <b>declined</b>.<br><br>
             Please contact support for more details.<br><br>- Akuua Store Team";
-
             sendMail($order['customer_email'], "Order #{$order['id']} Declined - Akuua Store", $message);
             $_SESSION['flash'] = "⚠️ Order #{$order['id']} declined successfully.";
         } else {
-            $_SESSION['flash'] = "❌ Failed to decline order #{$order['id']}. DB error: " . $update->error;
+            $_SESSION['flash'] = "❌ Failed to decline order #{$order['id']}.";
         }
     }
-
     header("Location: orders.php");
     exit;
 }
@@ -80,26 +67,23 @@ if (isset($_POST['delete_order'])) {
     if ($delete->execute()) {
         $_SESSION['flash'] = "🗑️ Order #$id deleted successfully.";
     } else {
-        $_SESSION['flash'] = "❌ Failed to delete order #$id. DB error: " . $conn->error;
+        $_SESSION['flash'] = "❌ Failed to delete order #$id.";
     }
     header("Location: orders.php");
     exit;
 }
 
-/* =========================
-   MAIL HELPER
-   ========================= */
+// ✅ Mail helper
 function sendMail($to, $subject, $body) {
     $mail = new PHPMailer(true);
     try {
         $mail->isSMTP();
         $mail->Host = 'smtp.gmail.com';
         $mail->SMTPAuth = true;
-        $mail->Username = 'molande.mau@gmail.com'; // your Gmail
-        $mail->Password = 'uphx vfoc nzdz tmxc';   // Gmail App password
+        $mail->Username = 'molande.mau@gmail.com';
+        $mail->Password = 'uphx vfoc nzdz tmxc'; // Gmail App Password
         $mail->SMTPSecure = 'tls';
         $mail->Port = 587;
-
         $mail->setFrom('molande.mau@gmail.com', 'Akuua Store');
         $mail->addAddress($to);
         $mail->isHTML(true);
@@ -111,16 +95,12 @@ function sendMail($to, $subject, $body) {
     }
 }
 
-/* =========================
-   FETCH ORDERS
-   ========================= */
+// ✅ Fetch orders grouped by status
 $approvedOrders = $conn->query("SELECT * FROM orders WHERE status='Approved' ORDER BY id DESC");
 $declinedOrders = $conn->query("SELECT * FROM orders WHERE status='Declined' ORDER BY id DESC");
 $pendingOrders  = $conn->query("SELECT * FROM orders WHERE status NOT IN ('Approved','Declined') ORDER BY id DESC");
 
-/* =========================
-   HELPER: Fetch items
-   ========================= */
+// ✅ Helper: Fetch items for an order
 function getOrderItems($orderId, $conn) {
     $items = [];
     $stmt = $conn->prepare("SELECT product_name, color, size, quantity, price FROM order_items WHERE order_id=?");
@@ -133,7 +113,6 @@ function getOrderItems($orderId, $conn) {
     return $items;
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -168,12 +147,12 @@ function getOrderItems($orderId, $conn) {
   ?>
   <div class="card shadow-sm mb-4">
     <div class="card-header bg-<?= $color ?> text-white"><?= $title ?></div>
-    <div class="card-body">
+    <div class="card-body table-responsive">
       <?php if ($orders->num_rows > 0): ?>
-      <table class="table table-hover align-middle">
-        <thead>
+      <table class="table table-hover align-middle text-nowrap">
+        <thead class="table-light">
           <tr>
-            <th>Order Number</th>
+            <th>Order #</th>
             <th>Customer</th>
             <th>Total</th>
             <th>Payment</th>
@@ -181,8 +160,8 @@ function getOrderItems($orderId, $conn) {
             <th>Delivery Address</th>
             <th>Date</th>
             <th>Status</th>
-            <th>Items</th>
-            <?php if ($color != 'success'): ?><th>Actions</th><?php endif; ?>
+            <th style="min-width:160px;">Items</th>
+            <?php if ($color != 'success'): ?><th style="min-width:120px;">Actions</th><?php endif; ?>
           </tr>
         </thead>
         <tbody>
@@ -199,30 +178,34 @@ function getOrderItems($orderId, $conn) {
             <td>
               <?php if (!empty($row['payment_proof'])): ?>
                 <a href="../uploads/<?= htmlspecialchars($row['payment_proof']) ?>" target="_blank">
-                  <img src="../uploads/<?= htmlspecialchars($row['payment_proof']) ?>" style="max-width:80px; height:auto; border:1px solid #ccc;">
+                  <img src="../uploads/<?= htmlspecialchars($row['payment_proof']) ?>" style="max-width:60px; height:auto;">
                 </a>
               <?php else: ?>
                 <span class="text-muted">No proof</span>
               <?php endif; ?>
             </td>
-            <td><?= nl2br(htmlspecialchars(!empty($row['delivery_address']) ? $row['delivery_address'] : $row['customer_address'])) ?></td>
+            <td style="max-width:180px; white-space:normal;"><?= nl2br(htmlspecialchars(!empty($row['delivery_address']) ? $row['delivery_address'] : $row['customer_address'])) ?></td>
             <td><?= $row['created_at'] ?></td>
             <td><span class="badge bg-<?= $color ?>"><?= htmlspecialchars($row['status']) ?></span></td>
             <td>
-              <ul class="list-unstyled mb-0">
-                <?php 
-                $items = getOrderItems($row['id'], $conn);
-                if (!empty($items)): 
-                  foreach ($items as $item): ?>
-                    <li>🛒 <?= htmlspecialchars($item['product_name']) ?> 
-                        (<?= htmlspecialchars($item['color']) ?>, <?= htmlspecialchars($item['size']) ?>) 
-                        x <?= (int)$item['quantity'] ?> - MWK<?= number_format($item['price'], 2) ?>
-                    </li>
-                  <?php endforeach; ?>
-                <?php else: ?>
-                  <li class="text-muted">No items found for this order</li>
-                <?php endif; ?>
-              </ul>
+              <!-- Collapsible Items -->
+              <button class="btn btn-sm btn-outline-dark" type="button" data-bs-toggle="collapse" data-bs-target="#items<?= $row['id'] ?>">View</button>
+              <div class="collapse mt-2" id="items<?= $row['id'] ?>">
+                <ul class="list-unstyled small mb-0">
+                  <?php 
+                  $items = getOrderItems($row['id'], $conn);
+                  if (!empty($items)): 
+                    foreach ($items as $item): ?>
+                      <li>🛒 <?= htmlspecialchars($item['product_name']) ?> 
+                          (<?= htmlspecialchars($item['color']) ?>, <?= htmlspecialchars($item['size']) ?>) 
+                          x <?= (int)$item['quantity'] ?> - MWK<?= number_format($item['price'], 2) ?>
+                      </li>
+                    <?php endforeach; ?>
+                  <?php else: ?>
+                    <li class="text-muted">No items</li>
+                  <?php endif; ?>
+                </ul>
+              </div>
             </td>
             <?php if ($color == 'warning'): ?>
               <td>
@@ -253,8 +236,8 @@ function getOrderItems($orderId, $conn) {
     </div>
   </div>
   <?php endforeach; ?>
-
 </div>
 <?php include "./includes/footer.php"; ?>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
