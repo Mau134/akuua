@@ -206,7 +206,7 @@ function getOrderItems($orderId, $conn) {
             </ul>
           </div>
         </td>
-        <td class="text-center" style="min-width:220px;">
+        <td>
   <?php if ($color == 'warning'): ?>
     <!-- Pending orders -->
     <div class="btn-group" role="group" aria-label="Order Actions">
