@@ -13,32 +13,43 @@ if (isset($_POST['submit'])) {
     $stmt = $conn->prepare("INSERT INTO products (name, description, price, stock, category) VALUES (?, ?, ?, ?, ?)");
     $stmt->bind_param("ssdis", $name, $description, $price, $stock, $category);
 
-    if ($stmt->execute()) {
-        $product_id = $stmt->insert_id;
+   if ($stmt->execute()) {
+    $product_id = $stmt->insert_id;
+    $main_image = null;
 
-        // Handle multiple file uploads (max 5)
-        if (!empty($_FILES['images']['name'][0])) {
-            $total_files = count($_FILES['images']['name']);
-            if ($total_files > 5) $total_files = 5; // limit to 5
+    if (!empty($_FILES['images']['name'][0])) {
+        $total_files = count($_FILES['images']['name']);
+        if ($total_files > 5) $total_files = 5;
 
-            for ($i = 0; $i < $total_files; $i++) {
-                if ($_FILES['images']['error'][$i] === 0) {
-                    $image_name = time() . "_" . basename($_FILES['images']['name'][$i]);
-                    $target_dir = "../uploads/";
-                    $target_file = $target_dir . $image_name;
+        for ($i = 0; $i < $total_files; $i++) {
+            if ($_FILES['images']['error'][$i] === 0) {
+                $image_name = time() . "_" . basename($_FILES['images']['name'][$i]);
+                $target_dir = "../uploads/";
+                $target_file = $target_dir . $image_name;
 
-                    if (move_uploaded_file($_FILES['images']['tmp_name'][$i], $target_file)) {
-                        // Save image path in separate table
-                        $img_stmt = $conn->prepare("INSERT INTO product_images (product_id, image) VALUES (?, ?)");
-                        $img_stmt->bind_param("is", $product_id, $image_name);
-                        $img_stmt->execute();
-                    }
+                if (move_uploaded_file($_FILES['images']['tmp_name'][$i], $target_file)) {
+                    // Save in product_images table
+                    $img_stmt = $conn->prepare("INSERT INTO product_images (product_id, image) VALUES (?, ?)");
+                    $img_stmt->bind_param("is", $product_id, $image_name);
+                    $img_stmt->execute();
+
+                    // Set first uploaded image as main image
+                    if ($i == 0) $main_image = $image_name;
                 }
             }
         }
+    }
 
-        echo "<div class='alert alert-success'>Product added successfully with images!</div>";
-    } else {
+    // ✅ Update main image in products table
+    if ($main_image) {
+        $update_stmt = $conn->prepare("UPDATE products SET main_image = ? WHERE id = ?");
+        $update_stmt->bind_param("si", $main_image, $product_id);
+        $update_stmt->execute();
+    }
+
+    echo "<div class='alert alert-success'>Product added successfully with images!</div>";
+}
+ else {
         echo "<div class='alert alert-danger'>Error: " . $stmt->error . "</div>";
     }
 }
