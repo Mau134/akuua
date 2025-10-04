@@ -94,7 +94,7 @@ function sendMail($to, $subject, $body) {
         $mail->SMTPSecure = 'tls';
         $mail->Port = 587;
 
-        $mail->setFrom('molande.mau@gmail.com', 'Akuua Store');
+        $mail->setFrom('akuuastore@gmail.com', 'Akuua Store');
         $mail->addAddress($to);
         $mail->isHTML(true);
         $mail->Subject = $subject;
