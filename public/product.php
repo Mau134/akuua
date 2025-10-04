@@ -30,7 +30,7 @@ if (isset($_GET['add']) && !isset($_SESSION['user_id'])) {
 ?>
 <style>
 body {
-  background: #f8f9fa; /* light gray background */
+  background: #f8f9fa;
   color: #333;
   font-family: Arial, sans-serif;
 }
@@ -50,7 +50,7 @@ body {
   box-shadow: 0 6px 18px rgba(0,0,0,0.15);
 }
 
-/* Selection cards */
+/* Option cards */
 .option-card {
   display: inline-block;
   padding: 10px 20px;
@@ -71,16 +71,46 @@ body {
   color: white;
   font-weight: bold;
 }
+
+/* Quantity selector */
+.quantity-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 180px;
+}
+.quantity-box button {
+  background-color: #007bff;
+  border: none;
+  color: white;
+  width: 35px;
+  height: 35px;
+  font-size: 18px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.quantity-box input {
+  text-align: center;
+  width: 60px;
+  height: 35px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 16px;
+}
+.quantity-box button:hover {
+  background-color: #0056b3;
+}
 </style>
 
 <div class="container py-5">
   <div class="product-card">
-    <div class="row">
+    <div class="row g-4">
       <div class="col-md-6">
         <img src="../uploads/<?= htmlspecialchars($product['image']) ?>" 
              class="img-fluid rounded shadow-sm product-img" 
              alt="<?= htmlspecialchars($product['name']) ?>">
       </div>
+
       <div class="col-md-6 product-details">
         <h2><?= htmlspecialchars($product['name']) ?></h2>
         <p class="text-muted fs-5">Category: <?= htmlspecialchars($product['category']) ?></p>
@@ -90,13 +120,13 @@ body {
 
         <?php if ($product['stock'] > 0): ?>
           <?php if (!isset($_SESSION['user_id'])): ?>
-            <!-- Not logged in: redirect to login -->
+            <!-- Not logged in -->
             <form action="login.php" method="GET" class="mt-3">
               <input type="hidden" name="redirect" value="product.php?id=<?= $product['id'] ?>">
               <button type="submit" class="btn btn-primary btn-lg">Add to Cart</button>
             </form>
           <?php else: ?>
-            <!-- Logged in: normal add to cart -->
+            <!-- Logged in -->
             <form action="cart.php" method="GET" class="mt-3" id="cartForm">
               <input type="hidden" name="add" value="<?= $product['id'] ?>">
 
@@ -134,7 +164,17 @@ body {
                 </div>
               </div>
 
-              <button type="submit" class="btn btn-primary btn-lg">Add to Cart</button>
+              <!-- Quantity Selection -->
+              <div class="mb-3">
+                <label class="form-label fw-bold">Select Quantity:</label>
+                <div class="quantity-box">
+                  <button type="button" id="decreaseQty">−</button>
+                  <input type="number" name="quantity" id="quantity" value="1" min="1" max="<?= $product['stock'] ?>" required>
+                  <button type="button" id="increaseQty">+</button>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-lg mt-3">Add to Cart</button>
             </form>
           <?php endif; ?>
         <?php else: ?>
@@ -164,11 +204,20 @@ document.querySelectorAll('.color-option').forEach(card => {
   });
 });
 
-// Ensure both size & color selected before submit
+// Quantity buttons
+const qtyInput = document.getElementById('quantity');
+document.getElementById('increaseQty').addEventListener('click', () => {
+  if (qtyInput.value < <?= $product['stock'] ?>) qtyInput.value++;
+});
+document.getElementById('decreaseQty').addEventListener('click', () => {
+  if (qtyInput.value > 1) qtyInput.value--;
+});
+
+// Validate before submit
 document.getElementById('cartForm').addEventListener('submit', function(e) {
   if (!document.getElementById('selectedSize').value || !document.getElementById('selectedColor').value) {
     e.preventDefault();
-    alert("Please select a size and a color before adding to cart.");
+    alert("Please select a size and color before adding to cart.");
   }
 });
 </script>
