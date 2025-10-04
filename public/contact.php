@@ -4,66 +4,84 @@ include "./includes/header.php";
 
 <style>
   body {
-    background: #f9fafb;
+    position: relative;
+    background: url("../assets/img/shop1.jpg") center center fixed;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-color: #f8f9fa;
+    color: #333;
+    z-index: 0;
   }
 
-  .contact-container {
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(255, 255, 255, 0.7);
+    z-index: -1;
+  }
+
+  .contact-card {
     background: #ffffff;
     border-radius: 15px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    padding: 40px;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
+    padding: 40px 50px;
     max-width: 700px;
-    margin: 50px auto;
+    margin: 60px auto;
     transition: all 0.3s ease;
   }
 
-  .contact-container:hover {
-    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.1);
+  .contact-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 35px rgba(0, 0, 0, 0.15);
   }
 
-  .contact-container h2 {
+  .contact-header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .contact-header i {
+    font-size: 3rem;
+    color: #007bff;
+    margin-bottom: 15px;
+  }
+
+  .contact-header h2 {
     font-weight: 700;
     color: #222;
   }
 
   .form-label {
-    font-weight: 500;
-    color: #444;
+    font-weight: 600;
+    color: #333;
   }
 
   .form-control {
     border-radius: 10px;
-    padding: 12px 14px;
-    border: 1px solid #ddd;
+    padding: 12px;
+    border: 1px solid #ccc;
   }
 
   .form-control:focus {
     border-color: #007bff;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.1);
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.15);
   }
 
   .btn-primary {
     border-radius: 10px;
     padding: 12px;
-    background-color: #007bff;
+    background: linear-gradient(135deg, #007bff, #00bfff);
     border: none;
     font-weight: 600;
     transition: 0.3s;
   }
 
   .btn-primary:hover {
-    background-color: #0056b3;
-  }
-
-  .contact-header {
-    text-align: center;
-    margin-bottom: 40px;
-  }
-
-  .contact-header i {
-    font-size: 3rem;
-    color: #007bff;
-    margin-bottom: 10px;
+    background: linear-gradient(135deg, #0056b3, #0099cc);
+    transform: translateY(-2px);
   }
 
   .alert {
@@ -71,15 +89,39 @@ include "./includes/header.php";
     margin: 20px auto;
     border-radius: 10px;
   }
+
+  /* Back to top button */
+  #backToTop {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    display: none;
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #007bff, #00d4ff);
+    color: white;
+    font-size: 28px;
+    line-height: 55px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 9999;
+  }
+
+  #backToTop:hover {
+    background: linear-gradient(135deg, #0056b3, #0099cc);
+    transform: translateY(-4px) scale(1.05);
+  }
 </style>
 
-<div class="contact-container">
+<!-- 🌟 Contact Section -->
+<div class="contact-card">
   <div class="contact-header">
     <i class="fas fa-envelope-circle-check"></i>
     <h2>Contact Us</h2>
-    <p class="text-muted">
-      Have questions, feedback, or need assistance? We'd love to hear from you.
-    </p>
+    <p class="text-muted">Have questions, feedback, or need assistance? We'd love to hear from you.</p>
   </div>
 
   <form action="contact.php" method="post">
@@ -110,13 +152,18 @@ include "./includes/header.php";
   </form>
 </div>
 
+<!-- Back to Top -->
+<a href="#" id="backToTop" class="btn btn-primary rounded-circle">
+  <i class="bi bi-arrow-up-short"></i>
+</a>
+
 <?php
 if (isset($_POST['submit'])) {
     $name = htmlspecialchars($_POST['name']);
     $email = htmlspecialchars($_POST['email']);
     $message = htmlspecialchars($_POST['message']);
 
-    $to = "akuuastores@gmail.com"; // ✅ replace with your real email
+    $to = "akuuastores@gmail.com"; // ✅ your email
     $subject = "New Contact Form Message from $name";
     $body = "Name: $name\nEmail: $email\n\nMessage:\n$message";
     $headers = "From: $email";
@@ -134,5 +181,21 @@ if (isset($_POST['submit'])) {
     }
 }
 ?>
+
+<script>
+window.onscroll = function() {
+  let btn = document.getElementById("backToTop");
+  if (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) {
+      btn.style.display = "block";
+  } else {
+      btn.style.display = "none";
+  }
+};
+
+document.getElementById("backToTop").addEventListener("click", function(e) {
+  e.preventDefault();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+</script>
 
 <?php include "./includes/footer.php"; ?>
