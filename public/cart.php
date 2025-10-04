@@ -1,19 +1,18 @@
 <?php
 session_start();
-require_once __DIR__ . "/../config/db.php"; // centralized DB + session
+require_once __DIR__ . "/../config/db.php";
 
 // Initialize cart
 if (!isset($_SESSION['cart'])) {
     $_SESSION['cart'] = [];
 }
 
-// Add item to cart
+// ADD TO CART
 if (isset($_GET['add'])) {
     $id = intval($_GET['add']);
-    $size = isset($_GET['size']) ? trim($_GET['size']) : null;
-    $color = isset($_GET['color']) ? trim($_GET['color']) : null;
+    $size = $_GET['size'] ?? null;
+    $color = $_GET['color'] ?? null;
 
-    // Create unique cart key based on product + size + color
     $cartKey = $id . "_" . $size . "_" . $color;
 
     if (!isset($_SESSION['cart'][$cartKey])) {
@@ -27,30 +26,34 @@ if (isset($_GET['add'])) {
         $_SESSION['cart'][$cartKey]['qty']++;
     }
 
-    // Redirect back to shop
     header("Location: ../index.php?added=1");
     exit;
 }
 
-// Remove item
+// REMOVE ITEM
 if (isset($_GET['remove'])) {
-    $key = $_GET['remove'];
-    unset($_SESSION['cart'][$key]);
+    unset($_SESSION['cart'][$_GET['remove']]);
     header("Location: cart.php");
     exit;
 }
 
-// Fetch cart items from DB
+// UPDATE QUANTITY
+if (isset($_GET['update']) && isset($_GET['qty'])) {
+    $key = $_GET['update'];
+    $qty = max(1, intval($_GET['qty']));
+    if (isset($_SESSION['cart'][$key])) {
+        $_SESSION['cart'][$key]['qty'] = $qty;
+    }
+    header("Location: cart.php");
+    exit;
+}
+
+// FETCH CART ITEMS
 $items = [];
 $total = 0;
-
 if (!empty($_SESSION['cart'])) {
-    $ids = array_map(function ($item) {
-        return intval($item['id']);
-    }, $_SESSION['cart']);
-    $ids = implode(",", array_unique($ids));
-
-    $result = $conn->query("SELECT * FROM products WHERE id IN ($ids)");
+    $ids = array_unique(array_map(fn($i) => intval($i['id']), $_SESSION['cart']));
+    $result = $conn->query("SELECT * FROM products WHERE id IN (" . implode(",", $ids) . ")");
     $products = [];
     while ($row = $result->fetch_assoc()) {
         $products[$row['id']] = $row;
@@ -58,90 +61,74 @@ if (!empty($_SESSION['cart'])) {
 
     foreach ($_SESSION['cart'] as $key => $cartItem) {
         if (isset($products[$cartItem['id']])) {
-            $product = $products[$cartItem['id']];
-            $cartItem['name'] = $product['name'];
-            $cartItem['price'] = $product['price'];
-            $cartItem['subtotal'] = $cartItem['qty'] * $product['price'];
-            $total += $cartItem['subtotal'];
+            $p = $products[$cartItem['id']];
+            $cartItem['name'] = $p['name'];
+            $cartItem['price'] = $p['price'];
+            $cartItem['subtotal'] = $p['price'] * $cartItem['qty'];
             $items[$key] = $cartItem;
+            $total += $cartItem['subtotal'];
         }
     }
 }
 
 include __DIR__ . "/../includes/header.php";
 ?>
+
 <style>
-  body {
-    position: relative;
-    background: url("../assets/img/shop1.jpg") center center fixed;
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    background-color: #f8f9fa;
-    color: #333;
-    z-index: 0;
-  }
-
-  body::before {
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.7);
-    z-index: -1;
-  }
-
-  /* Desktop: normal table */
-  .cart-table {
-    display: table;
-    width: 100%;
-  }
-
-  /* Mobile: show cards instead of table */
-  @media (max-width: 768px) {
-    .cart-table {
-      display: none;
-    }
-
-    .cart-card {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-      margin-bottom: 15px;
-      padding: 15px;
-    }
-
-    .cart-card h5 {
-      font-size: 1rem;
-      margin-bottom: 8px;
-      font-weight: 600;
-    }
-
-    .cart-card p {
-      margin: 2px 0;
-      font-size: 0.9rem;
-    }
-
-    .cart-card .subtotal {
-      font-weight: bold;
-      color: #28a745;
-    }
-
-    .cart-card .remove-btn {
-      margin-top: 10px;
-    }
-  }
+body {
+  position: relative;
+  background: url("../assets/img/shop1.jpg") center/cover no-repeat fixed;
+  background-color: #f8f9fa;
+}
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255,255,255,0.7);
+  z-index: -1;
+}
+.table-responsive {
+  background: rgba(255,255,255,0.95);
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  padding: 20px;
+}
+.cart-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  padding: 15px;
+  margin-bottom: 15px;
+}
+.cart-card h5 {
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+.cart-card .subtotal {
+  color: #28a745;
+  font-weight: bold;
+}
+.cart-card .remove-btn {
+  margin-top: 10px;
+}
+@media (max-width: 768px) {
+  .table-responsive { display: none; }
+}
+@media (min-width: 769px) {
+  .cart-card { display: none; }
+}
 </style>
 
 <div class="container py-5">
-  <h2 class="mb-4 text-center">Your Cart</h2>
-  
+  <h2 class="text-center mb-4">🛒 Your Shopping Cart</h2>
+
   <?php if ($items): ?>
-    <!-- Desktop Table View -->
-    <div class="table-responsive cart-table">
-      <table class="table table-bordered align-middle text-center">
+    <!-- Desktop Table -->
+    <div class="table-responsive">
+      <table class="table align-middle text-center">
         <thead class="table-dark">
           <tr>
             <th>Product</th>
@@ -154,52 +141,57 @@ include __DIR__ . "/../includes/header.php";
           </tr>
         </thead>
         <tbody>
-          <?php foreach ($items as $key => $item): ?>
-            <tr>
-              <td class="fw-semibold"><?= htmlspecialchars($item['name']) ?></td>
-              <td><?= htmlspecialchars($item['size'] ?: '-') ?></td>
-              <td><?= htmlspecialchars($item['color'] ?: '-') ?></td>
-              <td>MWK <?= number_format($item['price'],2) ?></td>
-              <td><?= $item['qty'] ?></td>
-              <td class="fw-semibold">MWK <?= number_format($item['subtotal'],2) ?></td>
-              <td>
-                <a href="cart.php?remove=<?= urlencode($key) ?>" class="btn btn-sm btn-outline-danger">✕ Remove</a>
-              </td>
-            </tr>
-          <?php endforeach; ?>
+          <?php foreach ($items as $key => $i): ?>
           <tr>
-            <td colspan="5" class="text-end fw-bold">Total</td>
-            <td colspan="2" class="fw-bold text-success fs-5">
-              MWK <?= number_format($total,2) ?>
+            <td class="fw-semibold"><?= htmlspecialchars($i['name']) ?></td>
+            <td><?= htmlspecialchars($i['size'] ?: '-') ?></td>
+            <td><?= htmlspecialchars($i['color'] ?: '-') ?></td>
+            <td>MWK <?= number_format($i['price'],2) ?></td>
+            <td>
+              <div class="input-group input-group-sm justify-content-center" style="max-width:120px;">
+                <a href="?update=<?= urlencode($key) ?>&qty=<?= max(1,$i['qty']-1) ?>" class="btn btn-outline-secondary">−</a>
+                <input type="text" readonly class="form-control text-center" value="<?= $i['qty'] ?>">
+                <a href="?update=<?= urlencode($key) ?>&qty=<?= $i['qty']+1 ?>" class="btn btn-outline-secondary">+</a>
+              </div>
             </td>
+            <td class="fw-semibold text-success">MWK <?= number_format($i['subtotal'],2) ?></td>
+            <td><a href="?remove=<?= urlencode($key) ?>" class="btn btn-sm btn-outline-danger">✕</a></td>
+          </tr>
+          <?php endforeach; ?>
+          <tr class="fw-bold table-success">
+            <td colspan="5" class="text-end">Total</td>
+            <td colspan="2">MWK <?= number_format($total,2) ?></td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <!-- Mobile Card View -->
-    <div class="d-md-none">
-      <?php foreach ($items as $key => $item): ?>
-        <div class="cart-card">
-          <h5><?= htmlspecialchars($item['name']) ?></h5>
-          <p>Size: <?= htmlspecialchars($item['size'] ?: '-') ?></p>
-          <p>Color: <?= htmlspecialchars($item['color'] ?: '-') ?></p>
-          <p>Price: MWK <?= number_format($item['price'],2) ?></p>
-          <p>Qty: <?= $item['qty'] ?></p>
-          <p class="subtotal">Subtotal: MWK <?= number_format($item['subtotal'],2) ?></p>
-          <a href="cart.php?remove=<?= urlencode($key) ?>" class="btn btn-sm btn-outline-danger remove-btn">✕ Remove</a>
-        </div>
-      <?php endforeach; ?>
+    <!-- Mobile Cards -->
+    <?php foreach ($items as $key => $i): ?>
       <div class="cart-card">
-        <h5>Total</h5>
-        <p class="subtotal fs-5">MWK <?= number_format($total,2) ?></p>
+        <h5><?= htmlspecialchars($i['name']) ?></h5>
+        <p>Size: <?= htmlspecialchars($i['size'] ?: '-') ?></p>
+        <p>Color: <?= htmlspecialchars($i['color'] ?: '-') ?></p>
+        <p>Price: MWK <?= number_format($i['price'],2) ?></p>
+        <p>Qty: 
+          <a href="?update=<?= urlencode($key) ?>&qty=<?= max(1,$i['qty']-1) ?>" class="btn btn-sm btn-outline-secondary">−</a>
+          <?= $i['qty'] ?>
+          <a href="?update=<?= urlencode($key) ?>&qty=<?= $i['qty']+1 ?>" class="btn btn-sm btn-outline-secondary">+</a>
+        </p>
+        <p class="subtotal">Subtotal: MWK <?= number_format($i['subtotal'],2) ?></p>
+        <a href="?remove=<?= urlencode($key) ?>" class="btn btn-sm btn-outline-danger remove-btn">Remove</a>
       </div>
+    <?php endforeach; ?>
+    <div class="cart-card text-center fw-bold fs-5">
+      Total: MWK <?= number_format($total,2) ?>
     </div>
 
+    <!-- Buttons -->
     <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mt-4">
       <a href="../index.php" class="btn btn-outline-secondary btn-lg w-100 w-md-auto">← Continue Shopping</a>
       <a href="checkout.php" class="btn btn-success btn-lg w-100 w-md-auto">Proceed to Checkout →</a>
     </div>
+
   <?php else: ?>
     <div class="alert alert-info text-center">
       Your cart is empty. <a href="../index.php" class="alert-link">Go shopping</a>
