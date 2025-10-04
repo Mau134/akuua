@@ -36,16 +36,16 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : null;
 
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
-        <li class="nav-item">
-          <a class="nav-link" href="/index.php#about">
-            <i class="fas fa-info-circle me-1"></i> About Us
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/index.php#faq">
-            <i class="fas fa-question-circle me-1"></i> FAQ
-          </a>
-        </li>
+       <li class="nav-item">
+  <a class="nav-link" href="/public/about.php">
+    <i class="fas fa-info-circle me-1"></i> About Us
+  </a>
+</li>
+<li class="nav-item">
+  <a class="nav-link" href="/public/faq.php">
+    <i class="fas fa-question-circle me-1"></i> FAQ
+  </a>
+</li>
         <li class="nav-item">
           <a class="nav-link position-relative" href="../public/cart.php">
             <i class="fas fa-shopping-cart me-1"></i> Cart
