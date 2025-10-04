@@ -42,7 +42,6 @@ if (isset($_POST['decline_order'])) {
 
     if ($order) {
         $conn->query("UPDATE orders SET status='Declined' WHERE id=$id");
-
         $message = "
             Dear {$order['customer_name']},<br><br>
             Unfortunately, your order ({$order['order_number']}) with a total of MWK " . number_format($order['total'], 2) . " has been <b>declined</b>.<br><br>
@@ -101,12 +100,11 @@ $pendingOrders  = $conn->query("SELECT * FROM orders WHERE status NOT IN ('Appro
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <style>
 .table-wrapper { overflow-x: auto; }
-td img { max-width: 70px; border: 1px solid #ccc; border-radius: 5px; }
-.items-table td { font-size: 14px; }
-.collapse-cell { background: #f9f9f9; }
-@media (max-width: 768px) {
-  table { font-size: 13px; }
-}
+td img { max-width: 60px; border-radius: 6px; }
+.items-table td { font-size: 14px; vertical-align: middle; }
+.collapse-cell { background: #fafafa; }
+.product-thumb { width: 50px; height: 50px; object-fit: cover; border-radius: 5px; margin-right: 8px; }
+@media (max-width: 768px) { table { font-size: 13px; } }
 </style>
 </head>
 <body class="bg-light">
@@ -195,13 +193,17 @@ function renderOrders($orders, $status, $conn) {
           <td colspan="8">
             <strong>Ordered Items:</strong>
             <?php
-            $items = $conn->query("SELECT * FROM order_items WHERE order_id = {$row['id']}");
+            $items = $conn->query("SELECT oi.*, p.name AS product_name, p.image AS product_image 
+                                   FROM order_items oi 
+                                   LEFT JOIN products p ON oi.product_id = p.id 
+                                   WHERE oi.order_id = {$row['id']}");
             if ($items->num_rows > 0):
             ?>
             <table class="table table-sm table-bordered mt-2 items-table">
               <thead class="table-light">
                 <tr>
                   <th>Product</th>
+                  <th>Image</th>
                   <th>Size</th>
                   <th>Color</th>
                   <th>Quantity</th>
@@ -212,7 +214,14 @@ function renderOrders($orders, $status, $conn) {
               <tbody>
               <?php while($it = $items->fetch_assoc()): ?>
               <tr>
-                <td><?= htmlspecialchars($it['product_name']) ?></td>
+                <td><?= htmlspecialchars($it['product_name'] ?? '-') ?></td>
+                <td>
+                  <?php if (!empty($it['product_image'])): ?>
+                    <img src="../uploads/<?= htmlspecialchars($it['product_image']) ?>" class="product-thumb">
+                  <?php else: ?>
+                    <span class="text-muted">No image</span>
+                  <?php endif; ?>
+                </td>
                 <td><?= htmlspecialchars($it['size'] ?: '-') ?></td>
                 <td><?= htmlspecialchars($it['color'] ?: '-') ?></td>
                 <td><?= (int)$it['quantity'] ?></td>
