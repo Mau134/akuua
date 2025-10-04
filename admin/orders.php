@@ -1,6 +1,6 @@
 <?php
 session_start();
-require '../vendor/autoload.php'; // Composer autoload
+require '../vendor/autoload.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
@@ -10,29 +10,24 @@ include "./includes/header.php";
 // ✅ Approve order
 if (isset($_POST['approve_order'])) {
     $id = intval($_POST['id']);
-    $stmt = $conn->prepare("SELECT id, customer_name, customer_email, customer_phone, total, customer_address, delivery_address FROM orders WHERE id=?");
+    $stmt = $conn->prepare("SELECT * FROM orders WHERE id=?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
     $order = $stmt->get_result()->fetch_assoc();
 
     if ($order) {
-        $update = $conn->prepare("UPDATE orders SET status='Approved' WHERE id=?");
-        $update->bind_param("i", $id);
+        $conn->query("UPDATE orders SET status='Approved' WHERE id=$id");
 
-        if ($update->execute()) {
-            $address = !empty($order['delivery_address']) ? $order['delivery_address'] : $order['customer_address'];
-            $message = "
-                Dear {$order['customer_name']},<br><br>
-                Your order ({$order['id']}) with a total of MWK " . number_format($order['total'], 2) . " has been <b>approved</b>.<br><br>
-                Delivery Address: {$address}<br><br>
-                Thank you for shopping with us.<br><br>
-                - Akuua Store Team
-            ";
-            sendMail($order['customer_email'], "Order #{$order['id']} Approved - Akuua Store", $message);
-            $_SESSION['flash'] = "✅ Order #{$order['id']} approved successfully.";
-        } else {
-            $_SESSION['flash'] = "❌ Failed to approve order #{$order['id']}. DB error: " . $update->error;
-        }
+        $address = !empty($order['delivery_address']) ? $order['delivery_address'] : $order['customer_address'];
+        $message = "
+            Dear {$order['customer_name']},<br><br>
+            Your order ({$order['order_number']}) with a total of MWK " . number_format($order['total'], 2) . " has been <b>approved</b>.<br><br>
+            Delivery Address: {$address}<br><br>
+            Thank you for shopping with us.<br><br>
+            - Akuua Store Team
+        ";
+        sendMail($order['customer_email'], "Order #{$order['order_number']} Approved - Akuua Store", $message);
+        $_SESSION['flash'] = "✅ Order #{$order['order_number']} approved successfully.";
     }
     header("Location: orders.php");
     exit;
@@ -41,56 +36,45 @@ if (isset($_POST['approve_order'])) {
 // ✅ Decline order
 if (isset($_POST['decline_order'])) {
     $id = intval($_POST['id']);
-    $stmt = $conn->prepare("SELECT id, customer_name, customer_email, customer_phone, total FROM orders WHERE id=?");
+    $stmt = $conn->prepare("SELECT * FROM orders WHERE id=?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
     $order = $stmt->get_result()->fetch_assoc();
 
     if ($order) {
-        $update = $conn->prepare("UPDATE orders SET status='Declined' WHERE id=?");
-        $update->bind_param("i", $id);
+        $conn->query("UPDATE orders SET status='Declined' WHERE id=$id");
 
-        if ($update->execute()) {
-            $message = "
-                Dear {$order['customer_name']},<br><br>
-                Unfortunately, your order ({$order['id']}) with a total of MWK " . number_format($order['total'], 2) . " has been <b>declined</b>.<br><br>
-                Please contact support for more details.<br><br>
-                - Akuua Store Team
-            ";
-            sendMail($order['customer_email'], "Order #{$order['id']} Declined - Akuua Store", $message);
-            $_SESSION['flash'] = "⚠️ Order #{$order['id']} declined successfully.";
-        } else {
-            $_SESSION['flash'] = "❌ Failed to decline order #{$order['id']}. DB error: " . $update->error;
-        }
+        $message = "
+            Dear {$order['customer_name']},<br><br>
+            Unfortunately, your order ({$order['order_number']}) with a total of MWK " . number_format($order['total'], 2) . " has been <b>declined</b>.<br><br>
+            Please contact support for more details.<br><br>
+            - Akuua Store Team
+        ";
+        sendMail($order['customer_email'], "Order #{$order['order_number']} Declined - Akuua Store", $message);
+        $_SESSION['flash'] = "⚠️ Order #{$order['order_number']} declined successfully.";
     }
     header("Location: orders.php");
     exit;
 }
 
-// ✅ Delete rejected order
+// ✅ Delete order
 if (isset($_POST['delete_order'])) {
     $id = intval($_POST['id']);
-    $delete = $conn->prepare("DELETE FROM orders WHERE id=?");
-    $delete->bind_param("i", $id);
-
-    if ($delete->execute()) {
-        $_SESSION['flash'] = "🗑️ Order #$id deleted successfully.";
-    } else {
-        $_SESSION['flash'] = "❌ Failed to delete order #$id. DB error: " . $conn->error;
-    }
+    $conn->query("DELETE FROM orders WHERE id=$id");
+    $_SESSION['flash'] = "🗑️ Order #$id deleted successfully.";
     header("Location: orders.php");
     exit;
 }
 
-// ✅ Mail helper function
+// ✅ Mail helper
 function sendMail($to, $subject, $body) {
     $mail = new PHPMailer(true);
     try {
         $mail->isSMTP();
         $mail->Host = 'smtp.gmail.com';
         $mail->SMTPAuth = true;
-        $mail->Username = 'akuuastore@gmail.com'; // your Gmail
-        $mail->Password = 'rlny cmvy cahq nlbg'; // Gmail App password
+        $mail->Username = 'akuuastore@gmail.com';
+        $mail->Password = 'rlny cmvy cahq nlbg'; // App password
         $mail->SMTPSecure = 'tls';
         $mail->Port = 587;
 
@@ -105,7 +89,7 @@ function sendMail($to, $subject, $body) {
     }
 }
 
-// ✅ Fetch orders grouped by status
+// ✅ Fetch orders by status
 $approvedOrders = $conn->query("SELECT * FROM orders WHERE status='Approved' ORDER BY id DESC");
 $declinedOrders = $conn->query("SELECT * FROM orders WHERE status='Declined' ORDER BY id DESC");
 $pendingOrders  = $conn->query("SELECT * FROM orders WHERE status NOT IN ('Approved','Declined') ORDER BY id DESC");
@@ -114,206 +98,150 @@ $pendingOrders  = $conn->query("SELECT * FROM orders WHERE status NOT IN ('Appro
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Admin - Orders</title>
-    <link rel="icon" type="image/png" href="../assets/favicon.png">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .table-wrapper {
-            overflow-x: auto;
-        }
-        table {
-            min-width: 1100px; /* Force horizontal scroll if too many columns */
-        }
-        td img {
-            max-width: 70px;
-            height: auto;
-            border: 1px solid #ccc;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>Admin - Orders</title>
+<link rel="icon" type="image/png" href="../assets/favicon.png">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+.table-wrapper { overflow-x: auto; }
+td img { max-width: 70px; border: 1px solid #ccc; border-radius: 5px; }
+.items-table td { font-size: 14px; }
+.collapse-cell { background: #f9f9f9; }
+</style>
 </head>
 <body class="bg-light">
 <div class="container py-5">
 
-    <h2 class="mb-4">Manage Orders</h2>
+<h2 class="mb-4">Manage Orders</h2>
 
-    <!-- Flash Messages -->
-    <?php if (isset($_SESSION['flash'])): ?>
-        <div class="alert alert-info alert-dismissible fade show" role="alert">
-            <?= $_SESSION['flash']; unset($_SESSION['flash']); ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    <?php endif; ?>
+<?php if (isset($_SESSION['flash'])): ?>
+<div class="alert alert-info alert-dismissible fade show">
+    <?= $_SESSION['flash']; unset($_SESSION['flash']); ?>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+<?php endif; ?>
 
-    <!-- ✅ Approved Orders -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-success text-white">Approved Orders</div>
-        <div class="card-body table-wrapper">
-            <?php if ($approvedOrders->num_rows > 0): ?>
-                <table class="table table-bordered table-hover align-middle">
-                    <thead class="table-light">
-                    <tr>
-                        <th>Order #</th>
-                        <th>Customer</th>
-                        <th>Total</th>
-                        <th>Payment</th>
-                        <th>Proof</th>
-                        <th>Delivery Address</th>
-                        <th>Date</th>
-                        <th>Status</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <?php while($row = $approvedOrders->fetch_assoc()): ?>
-                        <tr>
-                            <td><?= htmlspecialchars($row['order_number']) ?></td>
-                            <td>
-                                <?= htmlspecialchars($row['customer_name']) ?><br>
-                                <small><?= htmlspecialchars($row['customer_email']) ?></small><br>
-                                <small>📞 <?= htmlspecialchars($row['customer_phone']) ?></small>
-                            </td>
-                            <td>MWK<?= number_format($row['total'], 2) ?></td>
-                            <td><?= htmlspecialchars($row['payment_method']) ?></td>
-                            <td>
-                                <?php if (!empty($row['payment_proof'])): ?>
-                                    <a href="../uploads/<?= htmlspecialchars($row['payment_proof']) ?>" target="_blank">
-                                        <img src="../uploads/<?= htmlspecialchars($row['payment_proof']) ?>">
-                                    </a>
-                                <?php else: ?>
-                                    <span class="text-muted">No proof</span>
-                                <?php endif; ?>
-                            </td>
-                            <td><?= nl2br(htmlspecialchars(!empty($row['delivery_address']) ? $row['delivery_address'] : $row['customer_address'])) ?></td>
-                            <td><?= $row['created_at'] ?></td>
-                            <td><span class="badge bg-success">Approved</span></td>
-                        </tr>
-                    <?php endwhile; ?>
-                    </tbody>
-                </table>
-            <?php else: ?>
-                <p class="text-muted">No approved orders yet.</p>
-            <?php endif; ?>
-        </div>
+<?php
+function renderOrders($orders, $status, $conn) {
+    $colors = [
+        'Approved' => 'success',
+        'Declined' => 'danger',
+        'Pending'  => 'warning'
+    ];
+?>
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-<?= $colors[$status] ?? 'secondary' ?> text-white">
+        <?= ucfirst($status) ?> Orders
     </div>
+    <div class="card-body table-wrapper">
+        <?php if ($orders->num_rows > 0): ?>
+        <table class="table table-bordered table-hover align-middle">
+            <thead class="table-light">
+            <tr>
+                <th>Order #</th>
+                <th>Customer</th>
+                <th>Total</th>
+                <th>Payment</th>
+                <th>Proof</th>
+                <th>Date</th>
+                <th>Status</th>
+                <?php if ($status !== 'Approved'): ?><th>Actions</th><?php endif; ?>
+            </tr>
+            </thead>
+            <tbody>
+            <?php while($row = $orders->fetch_assoc()): ?>
+            <tr data-bs-toggle="collapse" data-bs-target="#items-<?= $row['id'] ?>" class="clickable">
+                <td><?= htmlspecialchars($row['order_number']) ?></td>
+                <td>
+                    <?= htmlspecialchars($row['customer_name']) ?><br>
+                    <small><?= htmlspecialchars($row['customer_email']) ?></small><br>
+                    <small>📞 <?= htmlspecialchars($row['customer_phone']) ?></small>
+                </td>
+                <td>MWK<?= number_format($row['total'], 2) ?></td>
+                <td><?= htmlspecialchars($row['payment_method']) ?></td>
+                <td>
+                    <?php if (!empty($row['payment_proof'])): ?>
+                        <a href="../uploads/<?= htmlspecialchars($row['payment_proof']) ?>" target="_blank">
+                            <img src="../uploads/<?= htmlspecialchars($row['payment_proof']) ?>">
+                        </a>
+                    <?php else: ?>
+                        <span class="text-muted">No proof</span>
+                    <?php endif; ?>
+                </td>
+                <td><?= htmlspecialchars($row['created_at']) ?></td>
+                <td><span class="badge bg-<?= $colors[$status] ?? 'secondary' ?>"><?= htmlspecialchars($row['status']) ?></span></td>
 
-    <!-- ❌ Declined Orders -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-danger text-white">Declined Orders</div>
-        <div class="card-body table-wrapper">
-            <?php if ($declinedOrders->num_rows > 0): ?>
-                <table class="table table-bordered table-hover align-middle">
-                    <thead class="table-light">
-                    <tr>
-                        <th>Order #</th>
-                        <th>Customer</th>
-                        <th>Total</th>
-                        <th>Payment</th>
-                        <th>Proof</th>
-                        <th>Date</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <?php while($row = $declinedOrders->fetch_assoc()): ?>
-                        <tr>
-                            <td><?= htmlspecialchars($row['order_number']) ?></td>
-                            <td>
-                                <?= htmlspecialchars($row['customer_name']) ?><br>
-                                <small><?= htmlspecialchars($row['customer_email']) ?></small><br>
-                                <small>📞 <?= htmlspecialchars($row['customer_phone']) ?></small>
-                            </td>
-                            <td>MWK<?= number_format($row['total'], 2) ?></td>
-                            <td><?= htmlspecialchars($row['payment_method']) ?></td>
-                            <td>
-                                <?php if (!empty($row['payment_proof'])): ?>
-                                    <a href="../uploads/<?= htmlspecialchars($row['payment_proof']) ?>" target="_blank">
-                                        <img src="../uploads/<?= htmlspecialchars($row['payment_proof']) ?>">
-                                    </a>
-                                <?php else: ?>
-                                    <span class="text-muted">No proof</span>
-                                <?php endif; ?>
-                            </td>
-                            <td><?= $row['created_at'] ?></td>
-                            <td><span class="badge bg-danger">Declined</span></td>
-                            <td>
-                                <form method="post" class="d-inline">
-                                    <input type="hidden" name="id" value="<?= $row['id'] ?>">
-                                    <button type="submit" name="delete_order" class="btn btn-sm btn-outline-danger"
-                                            onclick="return confirm('Delete this rejected order?')">Delete</button>
-                                </form>
-                            </td>
-                        </tr>
-                    <?php endwhile; ?>
-                    </tbody>
-                </table>
-            <?php else: ?>
-                <p class="text-muted">No declined orders yet.</p>
-            <?php endif; ?>
-        </div>
-    </div>
+                <?php if ($status !== 'Approved'): ?>
+                <td>
+                    <form method="post" class="d-inline">
+                        <input type="hidden" name="id" value="<?= $row['id'] ?>">
+                        <button type="submit" name="approve_order" class="btn btn-sm btn-success">Approve</button>
+                    </form>
+                    <form method="post" class="d-inline">
+                        <input type="hidden" name="id" value="<?= $row['id'] ?>">
+                        <button type="submit" name="decline_order" class="btn btn-sm btn-danger">Decline</button>
+                    </form>
+                    <?php if ($status === 'Declined'): ?>
+                    <form method="post" class="d-inline">
+                        <input type="hidden" name="id" value="<?= $row['id'] ?>">
+                        <button type="submit" name="delete_order" class="btn btn-sm btn-outline-danger">Delete</button>
+                    </form>
+                    <?php endif; ?>
+                </td>
+                <?php endif; ?>
+            </tr>
 
-    <!-- ⏳ Pending Orders -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-warning text-dark">Pending / In Progress Orders</div>
-        <div class="card-body table-wrapper">
-            <?php if ($pendingOrders->num_rows > 0): ?>
-                <table class="table table-bordered table-hover align-middle">
-                    <thead class="table-light">
-                    <tr>
-                        <th>Order #</th>
-                        <th>Customer</th>
-                        <th>Total</th>
-                        <th>Payment</th>
-                        <th>Proof</th>
-                        <th>Date</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <?php while($row = $pendingOrders->fetch_assoc()): ?>
+            <!-- Collapsible Order Items -->
+            <tr class="collapse collapse-cell" id="items-<?= $row['id'] ?>">
+                <td colspan="8">
+                    <strong>Ordered Items:</strong>
+                    <?php
+                    $items = $conn->query("SELECT * FROM order_items WHERE order_id = {$row['id']}");
+                    if ($items->num_rows > 0):
+                    ?>
+                    <table class="table table-sm table-bordered mt-2 items-table">
+                        <thead class="table-light">
                         <tr>
-                            <td><?= htmlspecialchars($row['order_number']) ?></td>
-                            <td>
-                                <?= htmlspecialchars($row['customer_name']) ?><br>
-                                <small><?= htmlspecialchars($row['customer_email']) ?></small><br>
-                                <small>📞 <?= htmlspecialchars($row['customer_phone']) ?></small>
-                            </td>
-                            <td>MWK<?= number_format($row['total'], 2) ?></td>
-                            <td><?= htmlspecialchars($row['payment_method']) ?></td>
-                            <td>
-                                <?php if (!empty($row['payment_proof'])): ?>
-                                    <a href="../uploads/<?= htmlspecialchars($row['payment_proof']) ?>" target="_blank">
-                                        <img src="../uploads/<?= htmlspecialchars($row['payment_proof']) ?>">
-                                    </a>
-                                <?php else: ?>
-                                    <span class="text-muted">No proof</span>
-                                <?php endif; ?>
-                            </td>
-                            <td><?= $row['created_at'] ?></td>
-                            <td><span class="badge bg-warning"><?= htmlspecialchars($row['status']) ?></span></td>
-                            <td>
-                                <form method="post" class="d-inline">
-                                    <input type="hidden" name="id" value="<?= $row['id'] ?>">
-                                    <button type="submit" name="approve_order" class="btn btn-sm btn-success">Approve</button>
-                                </form>
-                                <form method="post" class="d-inline">
-                                    <input type="hidden" name="id" value="<?= $row['id'] ?>">
-                                    <button type="submit" name="decline_order" class="btn btn-sm btn-danger">Decline</button>
-                                </form>
-                            </td>
+                            <th>Product</th>
+                            <th>Quantity</th>
+                            <th>Unit Price</th>
+                            <th>Total</th>
                         </tr>
-                    <?php endwhile; ?>
-                    </tbody>
-                </table>
-            <?php else: ?>
-                <p class="text-muted">No pending orders right now.</p>
-            <?php endif; ?>
-        </div>
+                        </thead>
+                        <tbody>
+                        <?php while($it = $items->fetch_assoc()): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($it['product_name']) ?></td>
+                            <td><?= (int)$it['quantity'] ?></td>
+                            <td>MWK<?= number_format($it['price'], 2) ?></td>
+                            <td>MWK<?= number_format($it['quantity'] * $it['price'], 2) ?></td>
+                        </tr>
+                        <?php endwhile; ?>
+                        </tbody>
+                    </table>
+                    <?php else: ?>
+                        <p class="text-muted mb-0">No items found for this order.</p>
+                    <?php endif; ?>
+                </td>
+            </tr>
+            <?php endwhile; ?>
+            </tbody>
+        </table>
+        <?php else: ?>
+            <p class="text-muted">No <?= strtolower($status) ?> orders yet.</p>
+        <?php endif; ?>
     </div>
 </div>
+<?php } ?>
 
+<?php
+renderOrders($pendingOrders, 'Pending', $conn);
+renderOrders($approvedOrders, 'Approved', $conn);
+renderOrders($declinedOrders, 'Declined', $conn);
+?>
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <?php include "./includes/footer.php"; ?>
 </body>
 </html>
