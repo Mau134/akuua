@@ -13,44 +13,28 @@ if (isset($_POST['submit'])) {
     $stmt = $conn->prepare("INSERT INTO products (name, description, price, stock, category) VALUES (?, ?, ?, ?, ?)");
     $stmt->bind_param("ssdis", $name, $description, $price, $stock, $category);
 
-   if ($stmt->execute()) {
-    $product_id = $stmt->insert_id;
-    $main_image = null;
+    if ($stmt->execute()) {
+        $product_id = $stmt->insert_id;
 
-    if (!empty($_FILES['images']['name'][0])) {
-        $total_files = count($_FILES['images']['name']);
-        if ($total_files > 5) $total_files = 5;
-
-        for ($i = 0; $i < $total_files; $i++) {
-            if ($_FILES['images']['error'][$i] === 0) {
-                $image_name = time() . "_" . basename($_FILES['images']['name'][$i]);
+        // ✅ Handle single image upload
+        if (!empty($_FILES['image']['name'])) {
+            if ($_FILES['image']['error'] === 0) {
+                $image_name = time() . "_" . basename($_FILES['image']['name']);
                 $target_dir = "../uploads/";
                 $target_file = $target_dir . $image_name;
 
-                if (move_uploaded_file($_FILES['images']['tmp_name'][$i], $target_file)) {
-                    // Save in product_images table
+                if (move_uploaded_file($_FILES['image']['tmp_name'], $target_file)) {
+                    // Save image path in separate table
                     $img_stmt = $conn->prepare("INSERT INTO product_images (product_id, image) VALUES (?, ?)");
                     $img_stmt->bind_param("is", $product_id, $image_name);
                     $img_stmt->execute();
-
-                    // Set first uploaded image as main image
-                    if ($i == 0) $main_image = $image_name;
                 }
             }
         }
-    }
 
-    // ✅ Update main image in products table
-    if ($main_image) {
-        $update_stmt = $conn->prepare("UPDATE products SET main_image = ? WHERE id = ?");
-        $update_stmt->bind_param("si", $main_image, $product_id);
-        $update_stmt->execute();
-    }
-
-    echo "<div class='alert alert-success'>Product added successfully with images!</div>";
-}
- else {
-        echo "<div class='alert alert-danger'>Error: " . $stmt->error . "</div>";
+        echo "<div class='alert alert-success'>✅ Product added successfully with image!</div>";
+    } else {
+        echo "<div class='alert alert-danger'>❌ Error: " . $stmt->error . "</div>";
     }
 }
 ?>
@@ -78,19 +62,15 @@ if (isset($_POST['submit'])) {
       <input type="number" name="stock" class="form-control" required>
     </div>
 
-    <!-- Custom Category Input -->
     <div class="mb-3">
-      <label for="category" class="form-label">Category</label>
-      <input type="text" name="category" id="category" class="form-control" 
-             placeholder="Enter a category (e.g. Shoes, Electronics, Bags)" required>
-      <small class="form-text text-muted">
-        Type a new category or reuse an existing one.
-      </small>
+      <label class="form-label">Category</label>
+      <input type="text" name="category" class="form-control" placeholder="e.g. Shoes, Electronics, Bags" required>
     </div>
 
+    <!-- ✅ Single image upload -->
     <div class="mb-3">
-      <label class="form-label">Upload Images (max 5)</label>
-      <input type="file" name="images[]" class="form-control" multiple>
+      <label class="form-label">Upload Product Image</label>
+      <input type="file" name="image" class="form-control" accept="image/*" required>
     </div>
 
     <button type="submit" name="submit" class="btn btn-success">Add Product</button>
