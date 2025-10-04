@@ -17,7 +17,6 @@ if (isset($_POST['approve_order'])) {
 
     if ($order) {
         $conn->query("UPDATE orders SET status='Approved' WHERE id=$id");
-
         $address = !empty($order['delivery_address']) ? $order['delivery_address'] : $order['customer_address'];
         $message = "
             Dear {$order['customer_name']},<br><br>
@@ -74,7 +73,7 @@ function sendMail($to, $subject, $body) {
         $mail->Host = 'smtp.gmail.com';
         $mail->SMTPAuth = true;
         $mail->Username = 'akuuastore@gmail.com';
-        $mail->Password = 'rlny cmvy cahq nlbg'; // App password
+        $mail->Password = 'rlny cmvy cahq nlbg'; // Gmail App Password
         $mail->SMTPSecure = 'tls';
         $mail->Port = 587;
 
@@ -89,24 +88,25 @@ function sendMail($to, $subject, $body) {
     }
 }
 
-// ✅ Fetch orders by status
+// ✅ Fetch orders
 $approvedOrders = $conn->query("SELECT * FROM orders WHERE status='Approved' ORDER BY id DESC");
 $declinedOrders = $conn->query("SELECT * FROM orders WHERE status='Declined' ORDER BY id DESC");
 $pendingOrders  = $conn->query("SELECT * FROM orders WHERE status NOT IN ('Approved','Declined') ORDER BY id DESC");
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>Admin - Orders</title>
-<link rel="icon" type="image/png" href="../assets/favicon.png">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <style>
 .table-wrapper { overflow-x: auto; }
 td img { max-width: 70px; border: 1px solid #ccc; border-radius: 5px; }
 .items-table td { font-size: 14px; }
 .collapse-cell { background: #f9f9f9; }
+@media (max-width: 768px) {
+  table { font-size: 13px; }
+}
 </style>
 </head>
 <body class="bg-light">
@@ -130,107 +130,110 @@ function renderOrders($orders, $status, $conn) {
     ];
 ?>
 <div class="card shadow-sm mb-4">
-    <div class="card-header bg-<?= $colors[$status] ?? 'secondary' ?> text-white">
-        <?= ucfirst($status) ?> Orders
-    </div>
-    <div class="card-body table-wrapper">
-        <?php if ($orders->num_rows > 0): ?>
-        <table class="table table-bordered table-hover align-middle">
-            <thead class="table-light">
-            <tr>
-                <th>Order #</th>
-                <th>Customer</th>
-                <th>Total</th>
-                <th>Payment</th>
-                <th>Proof</th>
-                <th>Date</th>
-                <th>Status</th>
-                <?php if ($status !== 'Approved'): ?><th>Actions</th><?php endif; ?>
-            </tr>
-            </thead>
-            <tbody>
-            <?php while($row = $orders->fetch_assoc()): ?>
-            <tr data-bs-toggle="collapse" data-bs-target="#items-<?= $row['id'] ?>" class="clickable">
-                <td><?= htmlspecialchars($row['order_number']) ?></td>
-                <td>
-                    <?= htmlspecialchars($row['customer_name']) ?><br>
-                    <small><?= htmlspecialchars($row['customer_email']) ?></small><br>
-                    <small>📞 <?= htmlspecialchars($row['customer_phone']) ?></small>
-                </td>
-                <td>MWK<?= number_format($row['total'], 2) ?></td>
-                <td><?= htmlspecialchars($row['payment_method']) ?></td>
-                <td>
-                    <?php if (!empty($row['payment_proof'])): ?>
-                        <a href="../uploads/<?= htmlspecialchars($row['payment_proof']) ?>" target="_blank">
-                            <img src="../uploads/<?= htmlspecialchars($row['payment_proof']) ?>">
-                        </a>
-                    <?php else: ?>
-                        <span class="text-muted">No proof</span>
-                    <?php endif; ?>
-                </td>
-                <td><?= htmlspecialchars($row['created_at']) ?></td>
-                <td><span class="badge bg-<?= $colors[$status] ?? 'secondary' ?>"><?= htmlspecialchars($row['status']) ?></span></td>
+  <div class="card-header bg-<?= $colors[$status] ?? 'secondary' ?> text-white">
+    <?= ucfirst($status) ?> Orders
+  </div>
+  <div class="card-body table-wrapper">
+    <?php if ($orders->num_rows > 0): ?>
+    <table class="table table-bordered table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Order #</th>
+          <th>Customer</th>
+          <th>Total</th>
+          <th>Payment</th>
+          <th>Proof</th>
+          <th>Date</th>
+          <th>Status</th>
+          <?php if ($status !== 'Approved'): ?><th>Actions</th><?php endif; ?>
+        </tr>
+      </thead>
+      <tbody>
+        <?php while($row = $orders->fetch_assoc()): ?>
+        <tr data-bs-toggle="collapse" data-bs-target="#items-<?= $row['id'] ?>" class="clickable">
+          <td><?= htmlspecialchars($row['order_number']) ?></td>
+          <td>
+            <?= htmlspecialchars($row['customer_name']) ?><br>
+            <small><?= htmlspecialchars($row['customer_email']) ?></small><br>
+            <small>📞 <?= htmlspecialchars($row['customer_phone']) ?></small>
+          </td>
+          <td>MWK<?= number_format($row['total'], 2) ?></td>
+          <td><?= htmlspecialchars($row['payment_method']) ?></td>
+          <td>
+            <?php if (!empty($row['payment_proof'])): ?>
+              <a href="../uploads/<?= htmlspecialchars($row['payment_proof']) ?>" target="_blank">
+                <img src="../uploads/<?= htmlspecialchars($row['payment_proof']) ?>">
+              </a>
+            <?php else: ?>
+              <span class="text-muted">No proof</span>
+            <?php endif; ?>
+          </td>
+          <td><?= htmlspecialchars($row['created_at']) ?></td>
+          <td><span class="badge bg-<?= $colors[$status] ?? 'secondary' ?>"><?= htmlspecialchars($row['status']) ?></span></td>
+          <?php if ($status !== 'Approved'): ?>
+          <td>
+            <form method="post" class="d-inline">
+              <input type="hidden" name="id" value="<?= $row['id'] ?>">
+              <button type="submit" name="approve_order" class="btn btn-sm btn-success">Approve</button>
+            </form>
+            <form method="post" class="d-inline">
+              <input type="hidden" name="id" value="<?= $row['id'] ?>">
+              <button type="submit" name="decline_order" class="btn btn-sm btn-danger">Decline</button>
+            </form>
+            <?php if ($status === 'Declined'): ?>
+            <form method="post" class="d-inline">
+              <input type="hidden" name="id" value="<?= $row['id'] ?>">
+              <button type="submit" name="delete_order" class="btn btn-sm btn-outline-danger">Delete</button>
+            </form>
+            <?php endif; ?>
+          </td>
+          <?php endif; ?>
+        </tr>
 
-                <?php if ($status !== 'Approved'): ?>
-                <td>
-                    <form method="post" class="d-inline">
-                        <input type="hidden" name="id" value="<?= $row['id'] ?>">
-                        <button type="submit" name="approve_order" class="btn btn-sm btn-success">Approve</button>
-                    </form>
-                    <form method="post" class="d-inline">
-                        <input type="hidden" name="id" value="<?= $row['id'] ?>">
-                        <button type="submit" name="decline_order" class="btn btn-sm btn-danger">Decline</button>
-                    </form>
-                    <?php if ($status === 'Declined'): ?>
-                    <form method="post" class="d-inline">
-                        <input type="hidden" name="id" value="<?= $row['id'] ?>">
-                        <button type="submit" name="delete_order" class="btn btn-sm btn-outline-danger">Delete</button>
-                    </form>
-                    <?php endif; ?>
-                </td>
-                <?php endif; ?>
-            </tr>
-
-            <!-- Collapsible Order Items -->
-            <tr class="collapse collapse-cell" id="items-<?= $row['id'] ?>">
-                <td colspan="8">
-                    <strong>Ordered Items:</strong>
-                    <?php
-                    $items = $conn->query("SELECT * FROM order_items WHERE order_id = {$row['id']}");
-                    if ($items->num_rows > 0):
-                    ?>
-                    <table class="table table-sm table-bordered mt-2 items-table">
-                        <thead class="table-light">
-                        <tr>
-                            <th>Product</th>
-                            <th>Quantity</th>
-                            <th>Unit Price</th>
-                            <th>Total</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <?php while($it = $items->fetch_assoc()): ?>
-                        <tr>
-                            <td><?= htmlspecialchars($it['product_name']) ?></td>
-                            <td><?= (int)$it['quantity'] ?></td>
-                            <td>MWK<?= number_format($it['price'], 2) ?></td>
-                            <td>MWK<?= number_format($it['quantity'] * $it['price'], 2) ?></td>
-                        </tr>
-                        <?php endwhile; ?>
-                        </tbody>
-                    </table>
-                    <?php else: ?>
-                        <p class="text-muted mb-0">No items found for this order.</p>
-                    <?php endif; ?>
-                </td>
-            </tr>
-            <?php endwhile; ?>
-            </tbody>
-        </table>
-        <?php else: ?>
-            <p class="text-muted">No <?= strtolower($status) ?> orders yet.</p>
-        <?php endif; ?>
-    </div>
+        <!-- Collapsible Order Items -->
+        <tr class="collapse collapse-cell" id="items-<?= $row['id'] ?>">
+          <td colspan="8">
+            <strong>Ordered Items:</strong>
+            <?php
+            $items = $conn->query("SELECT * FROM order_items WHERE order_id = {$row['id']}");
+            if ($items->num_rows > 0):
+            ?>
+            <table class="table table-sm table-bordered mt-2 items-table">
+              <thead class="table-light">
+                <tr>
+                  <th>Product</th>
+                  <th>Size</th>
+                  <th>Color</th>
+                  <th>Quantity</th>
+                  <th>Unit Price</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+              <?php while($it = $items->fetch_assoc()): ?>
+              <tr>
+                <td><?= htmlspecialchars($it['product_name']) ?></td>
+                <td><?= htmlspecialchars($it['size'] ?: '-') ?></td>
+                <td><?= htmlspecialchars($it['color'] ?: '-') ?></td>
+                <td><?= (int)$it['quantity'] ?></td>
+                <td>MWK<?= number_format($it['price'], 2) ?></td>
+                <td>MWK<?= number_format($it['quantity'] * $it['price'], 2) ?></td>
+              </tr>
+              <?php endwhile; ?>
+              </tbody>
+            </table>
+            <?php else: ?>
+              <p class="text-muted mb-0">No items found for this order.</p>
+            <?php endif; ?>
+          </td>
+        </tr>
+        <?php endwhile; ?>
+      </tbody>
+    </table>
+    <?php else: ?>
+      <p class="text-muted">No <?= strtolower($status) ?> orders yet.</p>
+    <?php endif; ?>
+  </div>
 </div>
 <?php } ?>
 
