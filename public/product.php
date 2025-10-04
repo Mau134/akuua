@@ -164,16 +164,6 @@ body {
                 </div>
               </div>
 
-              <!-- Quantity Selection -->
-              <div class="mb-3">
-                <label class="form-label fw-bold">Select Quantity:</label>
-                <div class="quantity-box">
-                  <button type="button" id="decreaseQty">−</button>
-                  <input type="number" name="quantity" id="quantity" value="1" min="1" max="<?= $product['stock'] ?>" required>
-                  <button type="button" id="increaseQty">+</button>
-                </div>
-              </div>
-
               <button type="submit" class="btn btn-primary btn-lg mt-3">Add to Cart</button>
             </form>
           <?php endif; ?>
