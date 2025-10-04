@@ -1,5 +1,6 @@
 <?php
-include "./includes/header.php";
+session_start();
+require_once __DIR__ . "/../config/db.php";
 ?>
 
 <style>
@@ -198,4 +199,4 @@ document.getElementById("backToTop").addEventListener("click", function(e) {
 });
 </script>
 
-<?php include "./includes/footer.php"; ?>
+<?php include __DIR__ . "/../includes/footer.php"; ?>
