@@ -79,7 +79,6 @@ include __DIR__ . "/../includes/header.php";
     border-radius: 10px;
   }
 
-  /* Back to top button */
   #backToTop {
     position: fixed;
     bottom: 25px;
@@ -150,27 +149,41 @@ include __DIR__ . "/../includes/header.php";
       $email = htmlspecialchars($_POST['email']);
       $message = htmlspecialchars($_POST['message']);
 
-      $to = "akuuastore@gmail.com"; // your actual email
-      $subject = "New Contact Form Message from $name";
+      // Admin (you) email
+      $to = "akuuastore@gmail.com";
+      $subject = "New Contact Message from $name";
       $body = "Name: $name\nEmail: $email\n\nMessage:\n$message";
-      $headers = "From: $email";
 
-      if (mail($to, $subject, $body, $headers)) {
+      // Proper email headers
+      $headers = "From: no-reply@akuua.com\r\n";
+      $headers .= "Reply-To: $email\r\n";
+      $headers .= "X-Mailer: PHP/" . phpversion();
+
+      // Send to admin
+      $adminMail = mail($to, $subject, $body, $headers);
+
+      // Send confirmation email to the user
+      $userSubject = "Your message to Akuua Store was received!";
+      $userMessage = "Hello $name,\n\nThank you for contacting Akuua Store.\n\nWe’ve received your message and will respond as soon as possible.\n\nBest regards,\nAkuua Store Team";
+      $userHeaders = "From: no-reply@akuua.com\r\n";
+
+      $userMail = mail($email, $userSubject, $userMessage, $userHeaders);
+
+      if ($adminMail) {
           echo "<div class='alert alert-success text-center'>
                   <i class='fas fa-check-circle me-2'></i>
-                  Thank you for contacting us! We’ll get back to you soon.
+                  Thank you, <strong>$name</strong>! Your message has been sent successfully. Please check your email for confirmation.
                 </div>";
       } else {
           echo "<div class='alert alert-danger text-center'>
                   <i class='fas fa-times-circle me-2'></i>
-                  Sorry, your message couldn’t be sent. Please try again later.
+                  Sorry, your message could not be sent. Please try again later.
                 </div>";
       }
   }
   ?>
 </div>
 
-<!-- Back to Top -->
 <a href="#" id="backToTop" class="btn btn-primary rounded-circle">
   <i class="bi bi-arrow-up-short"></i>
 </a>
@@ -178,11 +191,8 @@ include __DIR__ . "/../includes/header.php";
 <script>
 window.onscroll = function() {
   let btn = document.getElementById("backToTop");
-  if (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) {
-      btn.style.display = "block";
-  } else {
-      btn.style.display = "none";
-  }
+  btn.style.display = (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200)
+    ? "block" : "none";
 };
 
 document.getElementById("backToTop").addEventListener("click", function(e) {
