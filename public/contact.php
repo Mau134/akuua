@@ -150,7 +150,7 @@ include __DIR__ . "/../includes/header.php";
       $email = htmlspecialchars($_POST['email']);
       $message = htmlspecialchars($_POST['message']);
 
-      $to = "akuuastores@gmail.com"; // your actual email
+      $to = "akuuastore@gmail.com"; // your actual email
       $subject = "New Contact Form Message from $name";
       $body = "Name: $name\nEmail: $email\n\nMessage:\n$message";
       $headers = "From: $email";
