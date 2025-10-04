@@ -182,7 +182,6 @@ while ($row = $cat_query->fetch_assoc()) {
 
               <!-- ⭐ Star Ratings + Verified -->
               <div class="rating mb-2">
-                ★ ★ ★ ★ ☆ <small class="text-muted">(120)</small>
                 <span class="text-primary fw-semibold ms-2">✔ Verified</span>
               </div>
 
