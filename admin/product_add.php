@@ -3,38 +3,40 @@ require_once "../config/db.php";
 include "./includes/header.php";
 
 if (isset($_POST['submit'])) {
-    $name = $_POST['name'];
-    $description = $_POST['description'];
-    $price = $_POST['price'];
-    $stock = $_POST['stock'];
-    $category = $_POST['category'];
+    $name = trim($_POST['name']);
+    $description = trim($_POST['description']);
+    $price = floatval($_POST['price']);
+    $stock = intval($_POST['stock']);
+    $category = trim($_POST['category']);
 
-    // Insert product first
-    $stmt = $conn->prepare("INSERT INTO products (name, description, price, stock, category) VALUES (?, ?, ?, ?, ?)");
-    $stmt->bind_param("ssdis", $name, $description, $price, $stock, $category);
+    // ✅ Handle single image upload
+    $image_name = null;
+    if (!empty($_FILES['image']['name'])) {
+        if ($_FILES['image']['error'] === 0) {
+            $image_name = time() . "_" . basename($_FILES['image']['name']);
+            $target_dir = "../uploads/";
+            $target_file = $target_dir . $image_name;
 
-    if ($stmt->execute()) {
-        $product_id = $stmt->insert_id;
+            // Create uploads folder if it doesn't exist
+            if (!is_dir($target_dir)) {
+                mkdir($target_dir, 0777, true);
+            }
 
-        // ✅ Handle single image upload
-        if (!empty($_FILES['image']['name'])) {
-            if ($_FILES['image']['error'] === 0) {
-                $image_name = time() . "_" . basename($_FILES['image']['name']);
-                $target_dir = "../uploads/";
-                $target_file = $target_dir . $image_name;
-
-                if (move_uploaded_file($_FILES['image']['tmp_name'], $target_file)) {
-                    // Save image path in separate table
-                    $img_stmt = $conn->prepare("INSERT INTO product_images (product_id, image) VALUES (?, ?)");
-                    $img_stmt->bind_param("is", $product_id, $image_name);
-                    $img_stmt->execute();
-                }
+            if (!move_uploaded_file($_FILES['image']['tmp_name'], $target_file)) {
+                echo "<div class='alert alert-danger'>❌ Failed to upload image.</div>";
+                $image_name = null;
             }
         }
+    }
 
-        echo "<div class='alert alert-success'>✅ Product added successfully with image!</div>";
+    // ✅ Insert into products table
+    $stmt = $conn->prepare("INSERT INTO products (name, category, description, price, stock, image, created_at, status) VALUES (?, ?, ?, ?, ?, ?, NOW(), 'Active')");
+    $stmt->bind_param("sssdis", $name, $category, $description, $price, $stock, $image_name);
+
+    if ($stmt->execute()) {
+        echo "<div class='alert alert-success mt-3'>✅ Product added successfully!</div>";
     } else {
-        echo "<div class='alert alert-danger'>❌ Error: " . $stmt->error . "</div>";
+        echo "<div class='alert alert-danger mt-3'>❌ Error: " . htmlspecialchars($stmt->error) . "</div>";
     }
 }
 ?>
@@ -49,7 +51,7 @@ if (isset($_POST['submit'])) {
 
     <div class="mb-3">
       <label class="form-label">Description</label>
-      <textarea name="description" class="form-control" required></textarea>
+      <textarea name="description" class="form-control" rows="3" required></textarea>
     </div>
 
     <div class="mb-3">
@@ -67,10 +69,10 @@ if (isset($_POST['submit'])) {
       <input type="text" name="category" class="form-control" placeholder="e.g. Shoes, Electronics, Bags" required>
     </div>
 
-    <!-- ✅ Single image upload -->
     <div class="mb-3">
       <label class="form-label">Upload Product Image</label>
       <input type="file" name="image" class="form-control" accept="image/*" required>
+      <small class="text-muted">Only one image allowed per product.</small>
     </div>
 
     <button type="submit" name="submit" class="btn btn-success">Add Product</button>
