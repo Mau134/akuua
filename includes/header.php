@@ -59,6 +59,11 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : null;
     <i class="fas fa-question-circle me-1"></i> FAQ
   </a>
 </li>
+<li class="nav-item">
+  <a class="nav-link" href="/public/contact.php">
+    <i class="fas fa-envelope me-1"></i> Contact Us
+  </a>
+</li>
 
         <!-- Cart -->
         <li class="nav-item">
