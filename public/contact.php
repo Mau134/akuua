@@ -2,8 +2,50 @@
 session_start();
 require_once __DIR__ . "/../config/db.php";
 include __DIR__ . "/../includes/header.php";
+
+// --- Handle form submission ---
+if (isset($_POST['submit'])) {
+    $name = htmlspecialchars($_POST['name']);
+    $email = htmlspecialchars($_POST['email']);
+    $message = htmlspecialchars($_POST['message']);
+
+    $to = "akuuastore@gmail.com";
+    $subject = "New Contact Message from $name";
+    $body = "Name: $name\nEmail: $email\n\nMessage:\n$message";
+
+    $headers = "From: no-reply@akuua.com\r\n";
+    $headers .= "Reply-To: $email\r\n";
+    $headers .= "X-Mailer: PHP/" . phpversion();
+
+    $adminMail = mail($to, $subject, $body, $headers);
+
+    // Confirmation to user
+    $userSubject = "Your message to Akuua Store was received!";
+    $userMessage = "Hello $name,\n\nThank you for contacting Akuua Store.\n\nWe’ve received your message and will respond as soon as possible.\n\nBest regards,\nAkuua Store Team";
+    $userHeaders = "From: no-reply@akuua.com\r\n";
+
+    $userMail = mail($email, $userSubject, $userMessage, $userHeaders);
+
+    if ($adminMail) {
+        $_SESSION['alert'] = [
+            'type' => 'success',
+            'title' => 'Message Sent!',
+            'text' => "Thank you, $name! Your message has been sent successfully. Please check your email for confirmation."
+        ];
+    } else {
+        $_SESSION['alert'] = [
+            'type' => 'error',
+            'title' => 'Message Failed!',
+            'text' => "Sorry, your message could not be sent. Please try again later."
+        ];
+    }
+
+    header("Location: contact.php"); // Prevent form resubmission
+    exit;
+}
 ?>
 
+<!-- STYLES SAME AS BEFORE -->
 <style>
   body {
     position: relative;
@@ -30,35 +72,6 @@ include __DIR__ . "/../includes/header.php";
     padding: 40px;
   }
 
-  .contact-container h2 {
-    font-weight: 700;
-    text-align: center;
-    color: #222;
-    margin-bottom: 15px;
-  }
-
-  .contact-container p {
-    text-align: center;
-    color: #666;
-    margin-bottom: 25px;
-  }
-
-  .form-label {
-    font-weight: 600;
-    color: #333;
-  }
-
-  .form-control {
-    border-radius: 10px;
-    padding: 12px;
-    border: 1px solid #ccc;
-  }
-
-  .form-control:focus {
-    border-color: #007bff;
-    box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.15);
-  }
-
   .btn-primary {
     border-radius: 10px;
     padding: 12px;
@@ -72,54 +85,15 @@ include __DIR__ . "/../includes/header.php";
     background: linear-gradient(135deg, #0056b3, #0099cc);
     transform: translateY(-2px);
   }
-
-  .alert {
-    max-width: 700px;
-    margin: 20px auto;
-    border-radius: 10px;
-  }
-
-  #backToTop {
-    position: fixed;
-    bottom: 25px;
-    right: 25px;
-    display: none;
-    width: 55px;
-    height: 55px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #007bff, #00d4ff);
-    color: white;
-    font-size: 28px;
-    line-height: 55px;
-    text-align: center;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    z-index: 9999;
-  }
-
-  #backToTop:hover {
-    background: linear-gradient(135deg, #0056b3, #0099cc);
-    transform: translateY(-4px) scale(1.05);
-  }
-
-  .contact-icon {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 15px;
-    font-size: 3rem;
-    color: #007bff;
-  }
 </style>
 
 <div class="container">
   <div class="contact-container">
-    <div class="contact-icon">
-      <i class="fas fa-envelope-circle-check"></i>
+    <div class="text-center mb-3">
+      <i class="fas fa-envelope-circle-check fa-3x text-primary"></i>
     </div>
-    <h2>Contact Us</h2>
-    <p>Have questions, feedback, or need assistance? We'd love to hear from you.</p>
+    <h2 class="text-center fw-bold">Contact Us</h2>
+    <p class="text-center text-muted mb-4">Have questions, feedback, or need assistance? We'd love to hear from you.</p>
 
     <form action="contact.php" method="post">
       <div class="mb-3">
@@ -142,63 +116,25 @@ include __DIR__ . "/../includes/header.php";
       </button>
     </form>
   </div>
-
-  <?php
-  if (isset($_POST['submit'])) {
-      $name = htmlspecialchars($_POST['name']);
-      $email = htmlspecialchars($_POST['email']);
-      $message = htmlspecialchars($_POST['message']);
-
-      // Admin (you) email
-      $to = "akuuastore@gmail.com";
-      $subject = "New Contact Message from $name";
-      $body = "Name: $name\nEmail: $email\n\nMessage:\n$message";
-
-      // Proper email headers
-      $headers = "From: no-reply@akuua.com\r\n";
-      $headers .= "Reply-To: $email\r\n";
-      $headers .= "X-Mailer: PHP/" . phpversion();
-
-      // Send to admin
-      $adminMail = mail($to, $subject, $body, $headers);
-
-      // Send confirmation email to the user
-      $userSubject = "Your message to Akuua Store was received!";
-      $userMessage = "Hello $name,\n\nThank you for contacting Akuua Store.\n\nWe’ve received your message and will respond as soon as possible.\n\nBest regards,\nAkuua Store Team";
-      $userHeaders = "From: no-reply@akuua.com\r\n";
-
-      $userMail = mail($email, $userSubject, $userMessage, $userHeaders);
-
-      if ($adminMail) {
-          echo "<div class='alert alert-success text-center'>
-                  <i class='fas fa-check-circle me-2'></i>
-                  Thank you, <strong>$name</strong>! Your message has been sent successfully. Please check your email for confirmation.
-                </div>";
-      } else {
-          echo "<div class='alert alert-danger text-center'>
-                  <i class='fas fa-times-circle me-2'></i>
-                  Sorry, your message could not be sent. Please try again later.
-                </div>";
-      }
-  }
-  ?>
 </div>
 
-<a href="#" id="backToTop" class="btn btn-primary rounded-circle">
-  <i class="bi bi-arrow-up-short"></i>
-</a>
+<!-- SweetAlert2 for Popup -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<script>
-window.onscroll = function() {
-  let btn = document.getElementById("backToTop");
-  btn.style.display = (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200)
-    ? "block" : "none";
-};
-
-document.getElementById("backToTop").addEventListener("click", function(e) {
-  e.preventDefault();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-});
-</script>
+<?php
+// Show popup alert if it exists
+if (isset($_SESSION['alert'])) {
+    $alert = $_SESSION['alert'];
+    echo "<script>
+        Swal.fire({
+            icon: '{$alert['type']}',
+            title: '{$alert['title']}',
+            text: '{$alert['text']}',
+            confirmButtonColor: '#007bff'
+        });
+    </script>";
+    unset($_SESSION['alert']);
+}
+?>
 
 <?php include __DIR__ . "/../includes/footer.php"; ?>
